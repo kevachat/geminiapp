@@ -123,7 +123,7 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
 
     // Start server
     echo sprintf(
-        _('Start server "%s" started on %s:%d') . PHP_EOL,
+        _('Server "%s" started on %s:%d') . PHP_EOL,
         $host,
         $config->gemini->server->host,
         $config->gemini->server->port
