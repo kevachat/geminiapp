@@ -136,6 +136,18 @@ class Room
 
     public function posts(string $namespace): ?string
     {
+        // Get subject
+        $subject = null;
+
+        foreach ((array) $this->_kevacoin->kevaListNamespaces() as $record)
+        {
+            if ($record['namespaceId'] == $namespace)
+            {
+                $subject = $record['displayName'];
+            }
+        }
+
+        // Get posts
         $posts = [];
 
         foreach ((array) $this->_kevacoin->kevaFilter($namespace) as $record)
@@ -161,7 +173,7 @@ class Room
                 file_get_contents(
                     __DIR__ . '/../../logo.ascii'
                 ),
-                $namespace,
+                $subject ? $subject : $namespace,
                 implode(
                     PHP_EOL,
                     $posts
