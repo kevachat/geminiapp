@@ -147,11 +147,14 @@ class Room
 
         foreach ($records as $record)
         {
-            if ($post = $this->post($namespace, $record['key'], $records))
+            if ($post = $this->post($namespace, $record['key'], $records, null, $time))
             {
-                $posts[] = $post;
+                $posts[$time] = $post;
             }
         }
+
+        // Sort posts by time
+        krsort($posts);
 
         // Get subject
         $subject = null;
@@ -187,7 +190,7 @@ class Room
         );
     }
 
-    public function post(string $namespace, string $key, array $posts = [], ?string $field = null): ?string
+    public function post(string $namespace, string $key, array $posts = [], ?string $field = null, ?int &$time = 0): ?string
     {
         // Check record exists
         if (!$record = (array) $this->_kevacoin->kevaGet($namespace, $key))
@@ -270,6 +273,9 @@ class Room
                 $record['value'] = preg_replace('/^@([A-z0-9]{64})/', null, $record['value']);
             }
         }
+
+        // Return timestamp
+        $time = $matches[1];
 
         // Build final view and send to response
         return str_replace(
