@@ -91,11 +91,14 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
                         $config
                     );
 
-                    $response->setContent(
-                        $room->list()
-                    );
+                    if ($list = $room->list())
+                    {
+                        $response->setContent(
+                            $list
+                        );
 
-                    return $response;
+                        return $response;
+                    }
 
                 // Dynamical requests
                 default:
@@ -111,13 +114,14 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
                                 $config
                             );
 
-                            $response->setContent(
-                                $room->posts(
-                                    $matches[1]
-                                )
-                            );
+                            if ($posts = $room->posts($matches[1]))
+                            {
+                                $response->setContent(
+                                    $posts
+                                );
 
-                            return $response;
+                                return $response;
+                            }
                         }
                     }
             }
