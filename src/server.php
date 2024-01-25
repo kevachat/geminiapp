@@ -100,9 +100,25 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
                 // Dynamical requests
                 default:
 
-                    if (str_starts_with($request->getPath(), '/room/'))
+                    // Room posts by namespace
+                    if (preg_match('/^\/room\/(N[A-z0-9]{33})$/', $request->getPath(), $matches))
                     {
-                        // @TODO
+                        if (!empty($matches[1]))
+                        {
+                            include_once __DIR__ . '/controller/room.php';
+
+                            $room = new \Kevachat\Geminiapp\Controller\Room(
+                                $config
+                            );
+
+                            $response->setContent(
+                                $room->posts(
+                                    $matches[1]
+                                )
+                            );
+
+                            return $response;
+                        }
                     }
             }
 

@@ -1,7 +1,6 @@
 ## {author}
-
 > {quote}
-
-``` {time}
-
 {message}
+```
+{time}
+```

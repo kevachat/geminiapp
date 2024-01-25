@@ -14,7 +14,7 @@ KevaChat Application for Gemini Protocol
 
 * [x] Multiple host support
 * [x] Room list
-* [ ] Room threads
+* [x] Room threads
 * [ ] Post publication
 * [ ] Media viewer
 * [ ] Users auth
