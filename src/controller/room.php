@@ -48,7 +48,7 @@ class Room
             foreach ((array) $this->_kevacoin->kevaFilter($namespace['namespaceId']) as $record)
             {
                 // Is protocol compatible post
-                if ($this->post($namespace['namespaceId'], $record['key'], 'txid'))
+                if ($this->post($namespace['namespaceId'], $record['key'], [], 'txid'))
                 {
                     $total++;
                 }
@@ -136,6 +136,23 @@ class Room
 
     public function posts(string $namespace): ?string
     {
+        // Get namespace records
+        if (!$records = (array) $this->_kevacoin->kevaFilter($namespace))
+        {
+            return null;
+        }
+
+        // Get posts
+        $posts = [];
+
+        foreach ($records as $record)
+        {
+            if ($post = $this->post($namespace, $record['key'], $records))
+            {
+                $posts[] = $post;
+            }
+        }
+
         // Get subject
         $subject = null;
 
@@ -147,22 +164,7 @@ class Room
             }
         }
 
-        // Get posts
-        $posts = [];
-
-        foreach ((array) $this->_kevacoin->kevaFilter($namespace) as $record)
-        {
-            if (empty($record['key']))
-            {
-                continue;
-            }
-
-            if ($post = $this->post($namespace, $record['key']))
-            {
-                $posts[] = $post;
-            }
-        }
-
+        // Get template
         return str_replace(
             [
                 '{logo}',
@@ -185,7 +187,7 @@ class Room
         );
     }
 
-    public function post(string $namespace, string $key, ?string $field = null): ?string
+    public function post(string $namespace, string $key, array $posts = [], ?string $field = null): ?string
     {
         // Check record exists
         if (!$record = (array) $this->_kevacoin->kevaGet($namespace, $key))
@@ -239,9 +241,30 @@ class Room
         $quote = null;
         if (preg_match('/^@([A-z0-9]{64})/', $record['value'], $mention))
         {
+            // Message starts with mention
             if (!empty($mention[1]))
             {
-                $quote = '@' . $mention[1]; // @TODO replace to post message by txid
+                // Use original mention as quote by default
+                $quote = $mention[1];
+
+                // Try to replace with post message by txid
+                foreach ($posts as $post)
+                {
+                    if ($post['txid'] == $quote)
+                    {
+                        // Strip folding
+                        $quote =
+                        trim(
+                            preg_replace(
+                                '/^@([A-z0-9]{64})/',
+                                null,
+                                $post['value']
+                            )
+                        );
+
+                        break;
+                    }
+                }
 
                 // Remove mention from message
                 $record['value'] = preg_replace('/^@([A-z0-9]{64})/', null, $record['value']);
