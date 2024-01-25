@@ -1,0 +1,4 @@
+/vendor/
+/host/*/
+
+composer.lock

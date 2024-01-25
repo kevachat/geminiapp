@@ -1,0 +1,15 @@
+{
+    "name": "kevachat/geminiapp",
+    "description": "KevaChat Application for Gemini Protocol",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Kevachat\\Geminiapp\\": "src/"
+        }
+    },
+    "require": {
+        "yggverse/titan-ii": "^1.0",
+        "kevachat/kevacoin": "^1.6"
+    }
+}
