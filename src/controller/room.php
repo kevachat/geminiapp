@@ -256,13 +256,22 @@ class Room
                     if ($post['txid'] == $quote)
                     {
                         // Strip folding
-                        $quote =
+                        $quote = '>' .
                         trim(
                             preg_replace(
                                 '/^@([A-z0-9]{64})/',
                                 null,
-                                $post['value']
-                            )
+                                // Add quote after each new line
+                                str_replace(
+                                    PHP_EOL,
+                                    PHP_EOL . '>',
+                                    // Ignore markup
+                                    $this->_plain(
+                                        $post['value']
+                                    )
+                                )
+                            ),
+                            '>'
                         );
 
                         break;
@@ -270,7 +279,13 @@ class Room
                 }
 
                 // Remove mention from message
-                $record['value'] = preg_replace('/^@([A-z0-9]{64})/', null, $record['value']);
+                $record['value'] = preg_replace(
+                    '/^@([A-z0-9]{64})/',
+                    null,
+                    $this->_plain(
+                        $record['value']
+                    )
+                );
             }
         }
 
@@ -292,10 +307,9 @@ class Room
                     $matches[1]
                 ),
                 '@' . $matches[2],
-                trim(
-                    $quote
-                ),
-                trim(
+                $quote
+                ,
+                $this->_plain(
                     $record['value']
                 )
             ],
@@ -379,5 +393,24 @@ class Room
         $cases = [2, 0, 1, 1, 1, 2];
 
         return $texts[(($number % 100) > 4 && ($number % 100) < 20) ? 2 : $cases[min($number % 10, 5)]];
+    }
+
+    private function _plain(string $value)
+    {
+        return trim(
+            str_replace(
+                [
+                    '#',
+                    '##',
+                    '###',
+                    '>',
+                    '*',
+                    '```',
+                    '=>',
+                ],
+                null,
+                $value
+            )
+        );
     }
 }
