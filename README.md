@@ -1,5 +1,13 @@
 # geminiapp
 
+```
+  _  __                ____ _           _
+ | |/ /_____   ____ _ / ___| |__   __ _| |_
+ | ' // _ \ \ / / _` | |   | '_ \ / _` | __|
+ | . \  __/\ V / (_| | |___| | | | (_| | |_
+ |_|\_\___| \_/ \__,_|\____|_| |_|\__,_|\__|
+
+```
 KevaChat Application for Gemini Protocol
 
 ## Roadmap
@@ -14,9 +22,9 @@ KevaChat Application for Gemini Protocol
 
 ## Install
 
-`git clone https://github.com/kevachat/geminiapp.git`
-`cd geminiapp`
-`composer update`
+* `git clone https://github.com/kevachat/geminiapp.git`
+* `cd geminiapp`
+* `composer update`
 
 ## Setup
 
