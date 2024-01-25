@@ -212,9 +212,9 @@ class Room
         }
 
         // Is raw field request
-        if ($field && isset($record[$field]))
+        if ($field)
         {
-            return $record[$field];
+            return isset($record[$field]) ? $record[$field] : null;
         }
 
         // Legacy usernames backport
