@@ -251,12 +251,14 @@ class Room
         // Build final view and send to response
         return str_replace(
             [
+                '{txid}',
                 '{time}',
                 '{author}',
                 '{quote}',
                 '{message}',
             ],
             [
+                $record['txid'],
                 $this->_ago(
                     $matches[1]
                 ),

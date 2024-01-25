@@ -2,5 +2,5 @@
 > {quote}
 {message}
 ```
-{time}
+{time} #{txid}
 ```
