@@ -316,7 +316,7 @@ class Room
         // Reply link
         $links[] = $this->_link(
             sprintf(
-                '/room/%s/reply/%s',
+                '/room/%s/%s/reply',
                 $namespace,
                 $record['txid'],
             ),
