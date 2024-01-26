@@ -433,12 +433,19 @@ class Room
                 $line
             );
 
+            // Escape inline *
+            $line = preg_replace(
+                '/[*]{1}([^*]+)[*]{1}/',
+                '[*]$1[*]',
+                $line
+            );
+
             // Process each tag on line beginning
             foreach (
                 [
-                    '#',
-                    '##',
                     '###',
+                    '##',
+                    '#',
                     '=>',
                     '>',
                     '*',
@@ -456,13 +463,6 @@ class Room
                     $line
                 );
             }
-
-            // Escape inline *
-            $line = preg_replace(
-                '/[*]{1}([^*]+)[*]{1}/',
-                '[*]$2[*]',
-                $line
-            );
 
             // Merge lines
             $lines[] = $line;
