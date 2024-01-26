@@ -5,11 +5,25 @@ namespace Kevachat\Geminiapp\Controller;
 class Room
 {
     private $_config;
+    private $_memory;
+
+    private $_session;
 
     private \Kevachat\Kevacoin\Client $_kevacoin;
 
-    public function __construct($config)
+    public function __construct(\Yggverse\Cache\Memory $memory, $config)
     {
+        // Init memory
+        $this->_memory = $memory;
+
+        // Init session
+        $this->_session = rand();
+
+        $this->_memory->set(
+            $this->_session,
+            time()
+        );
+
         // Init config
         $this->_config = $config;
 
@@ -170,8 +184,9 @@ class Room
                 // post
                 $this->_link( // @TODO
                     sprintf(
-                        '/room/%s/post',
-                        $namespace
+                        '/room/%s/%d/post',
+                        $namespace,
+                        $this->_session
                     )
                 ),
 
@@ -190,6 +205,69 @@ class Room
                 __DIR__ . '/../view/posts.gemini'
             )
         );
+    }
+
+    public function post(string $namespace, ?string $txid, int $session, string $message): bool
+    {
+        // Validate funds available yet
+        if (1 > $this->_kevacoin->getBalance())
+        {
+            return false;
+        }
+
+        // Validate session exists
+        if (!$this->_memory->get($session))
+        {
+            return false;
+        }
+
+        // Validate value format allowed in settings
+        if (!preg_match((string) $this->_config->kevachat->post->value->regex, $message))
+        {
+            return false;
+        }
+
+        // Prepare message
+        $message = trim(
+            strip_tags(
+                urldecode(
+                    $message
+                )
+            )
+        );
+
+        // Append mention if provided
+        if ($txid)
+        {
+            $message = $txid . PHP_EOL . $message;
+        }
+
+        // Validate final message length
+        if (mb_strlen($message) < 1 || mb_strlen($message) > 3072)
+        {
+            return false;
+        }
+
+        // Send message
+        if (!$this->_kevacoin->kevaPut(
+                $namespace,
+                sprintf(
+                    '%s@anon',
+                    time()
+                ),
+                $message
+        ))
+        {
+            return false;
+        }
+
+        // Cleanup memory
+        $this->_memory->delete(
+            $session
+        );
+
+        // Success
+        return true;
     }
 
     private function _post(string $namespace, string $key, array $posts = [], ?string $field = null, ?int &$time = 0): ?string
@@ -316,9 +394,10 @@ class Room
         // Reply link
         $links[] = $this->_link(
             sprintf(
-                '/room/%s/%s/reply',
+                '/room/%s/%s/%d/reply',
                 $namespace,
                 $record['txid'],
+                $this->_session
             ),
             _('Reply'),
             true

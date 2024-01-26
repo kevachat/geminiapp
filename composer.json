@@ -11,6 +11,7 @@
     "require": {
         "yggverse/titan-ii": "^1.0",
         "kevachat/kevacoin": "^1.6",
-        "clitor-is-protocol/kevacoin": "^1.0"
+        "clitor-is-protocol/kevacoin": "^1.0",
+        "yggverse/cache": "^0.3.1"
     }
 }

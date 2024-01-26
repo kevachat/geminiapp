@@ -52,6 +52,14 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
         )
     );
 
+    // Init memory
+    $memory = new \Yggverse\Cache\Memory(
+        $config->memcached->server->host,
+        $config->memcached->server->port,
+        $config->memcached->server->namespace,
+        $config->memcached->server->timeout
+    );
+
     // Init server
     $server = new \Yggverse\TitanII\Server();
 
@@ -66,6 +74,7 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
     $server->setHandler(
         function (\Yggverse\TitanII\Request $request): \Yggverse\TitanII\Response
         {
+            global $memory;
             global $config;
 
             $response = new \Yggverse\TitanII\Response();
@@ -89,6 +98,7 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
                     include_once __DIR__ . '/controller/room.php';
 
                     $room = new \Kevachat\Geminiapp\Controller\Room(
+                        $memory,
                         $config
                     );
 
@@ -104,6 +114,7 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
                 // Dynamical requests
                 default:
 
+                    // room|raw request
                     if (preg_match('/^\/([A-z]+)\/(N[A-z0-9]{33})$/', $request->getPath(), $matches))
                     {
                         if (!empty($matches[1]) && !empty($matches[2]))
@@ -115,6 +126,7 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
                                     include_once __DIR__ . '/controller/room.php';
 
                                     $room = new \Kevachat\Geminiapp\Controller\Room(
+                                        $memory,
                                         $config
                                     );
 
@@ -151,6 +163,104 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
                                     }
 
                                 break;
+                            }
+                        }
+                    }
+
+                    // New publication request
+                    else if (preg_match('/^\/room\/(N[A-z0-9]{33})\/([\d]+)\/post$/', $request->getPath(), $matches))
+                    {
+                        if (!empty($matches[1]))
+                        {
+                            // Request post message
+                            if (empty($request->getQuery()))
+                            {
+                                $response->setMeta(
+                                    'text/plain'
+                                );
+
+                                $response->setCode(
+                                    10
+                                );
+
+                                return $response;
+                            }
+
+                            // Message sent, save to blockchain
+                            else
+                            {
+                                include_once __DIR__ . '/controller/room.php';
+
+                                $room = new \Kevachat\Geminiapp\Controller\Room(
+                                    $memory,
+                                    $config
+                                );
+
+                                // Success, redirect to this room page
+                                if ($room->post($matches[1], null, $matches[2], $request->getQuery()))
+                                {
+                                    $response->setCode(
+                                        30
+                                    );
+
+                                    $response->setMeta(
+                                        sprintf(
+                                            '/room/%s',
+                                            $matches[1]
+                                        )
+                                    );
+
+                                    return $response;
+                                }
+                            }
+                        }
+                    }
+
+                    // New post reply request
+                    else if (preg_match('/^\/room\/(N[A-z0-9]{33})\/([A-z0-9]{64})\/([\d]+)\/reply$/', $request->getPath(), $matches))
+                    {
+                        if (!empty($matches[1]) && !empty($matches[2]) && !empty($matches[3]))
+                        {
+                            // Request post message
+                            if (empty($request->getQuery()))
+                            {
+                                $response->setMeta(
+                                    'text/plain'
+                                );
+
+                                $response->setCode(
+                                    10
+                                );
+
+                                return $response;
+                            }
+
+                            // Message sent, save to blockchain
+                            else
+                            {
+                                include_once __DIR__ . '/controller/room.php';
+
+                                $room = new \Kevachat\Geminiapp\Controller\Room(
+                                    $memory,
+                                    $config
+                                );
+
+                                // Success, redirect to this room page
+                                if ($room->post($matches[1], $matches[2], $matches[3], $request->getQuery()))
+                                {
+                                    $response->setCode(
+                                        30
+                                    );
+
+                                    $response->setMeta(
+                                        sprintf(
+                                            '/room/%s',
+                                            $matches[1]
+                                        )
+                                    );
+
+                                    return $response;
+                                }
                             }
                         }
                     }

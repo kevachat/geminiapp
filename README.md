@@ -16,8 +16,8 @@ KevaChat is distributed chat platform for open, uncensored and privacy respectab
 * [x] Multiple host support
 * [x] Room list
 * [x] Room threads
-* [ ] Post publication
-* [ ] Post replies
+* [x] Post publication
+* [x] Post replies
 * [ ] Rooms publication
 * [x] Media viewer
 * [ ] Users auth
