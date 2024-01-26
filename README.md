@@ -15,6 +15,7 @@ KevaChat is distributed chat platform for open, uncensored and privacy respectab
 
 * `gemini://[301:23b4:991a:634d::1965]` - Yggdrasil
 * `gemini://kevachat.ygg` - Yggdrasil / Alfis DNS
+* `gemini://kevachat.duckdns.org` - Internet
 
 ## Roadmap
 
