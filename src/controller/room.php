@@ -135,17 +135,6 @@ class Room
             return null;
         }
 
-        // Get subject
-        $subject = null;
-
-        foreach ((array) $this->_kevacoin->kevaListNamespaces() as $record) // find local room name
-        {
-            if ($record['namespaceId'] == $namespace)
-            {
-                $subject = $record['displayName'];
-            }
-        }
-
         // Get posts
         $posts = [];
 
@@ -154,11 +143,6 @@ class Room
             if ($post = $this->post($namespace, $record['key'], $records, null, $time))
             {
                 $posts[$time] = $post;
-            }
-
-            if ($record['key'] == '_KEVA_NS_') // find remote room name
-            {
-                $subject = $record['value'];
             }
         }
 
@@ -175,17 +159,28 @@ class Room
                 '{posts}'
             ],
             [
+                // logo
                 file_get_contents(
                     __DIR__ . '/../../logo.ascii'
                 ),
+
+                // home
                 $this->_link(),
+
+                // post
                 $this->_link( // @TODO
                     sprintf(
                         '/room/%s/post',
                         $namespace
                     )
                 ),
-                $subject ? $subject : $namespace,
+
+                // subject
+                $this->_namespace(
+                    $namespace
+                ),
+
+                // posts
                 implode(
                     PHP_EOL,
                     $posts
@@ -282,6 +277,53 @@ class Room
             }
         }
 
+        // Init links
+        $links = [];
+
+        // Generate related links
+        if (preg_match('/N[A-z0-9]{33}/', $record['value'], $values))
+        {
+            foreach ($values as $value)
+            {
+                // Media attachments
+                if ($name = $this->_clitoris($value))
+                {
+                    $links[] = $this->_link(
+                        sprintf(
+                            '/raw/%s',
+                            $value
+                        ),
+                        $name,
+                        true
+                    );
+                }
+
+                // Namespace clickable
+                else if ($name = $this->_namespace($value))
+                {
+                    $links[] = $this->_link(
+                        sprintf(
+                            '/room/%s',
+                            $value
+                        ),
+                        $name,
+                        true
+                    );
+                }
+            }
+        }
+
+        // Reply link
+        $links[] = $this->_link(
+            sprintf(
+                '/room/%s/reply/%s',
+                $namespace,
+                $record['txid'],
+            ),
+            _('Reply'),
+            true
+        );
+
         // Return timestamp
         $time = $matches[1];
 
@@ -328,17 +370,7 @@ class Room
                     // links
                     implode(
                         PHP_EOL,
-                        [
-                            $this->_link(
-                                sprintf(
-                                    '/room/%s/reply/%s',
-                                    $namespace,
-                                    $record['txid'],
-                                ),
-                                _('Reply'),
-                                true
-                            )
-                        ]
+                        $links
                     )
                 ],
                 file_get_contents(
@@ -415,6 +447,25 @@ class Room
                 );
             }
         }
+    }
+
+    public function _bytes(int $bytes, int $precision = 2): string
+    {
+        $size = [
+            'B',
+            'Kb',
+            'Mb',
+            'Gb',
+            'Tb',
+            'Pb',
+            'Eb',
+            'Zb',
+            'Yb'
+        ];
+
+        $factor = floor((strlen($bytes) - 1) / 3);
+
+        return sprintf("%.{$precision}f", $bytes / pow(1024, $factor)) . ' ' . @$size[$factor];
     }
 
     private function _plural(int $number, array $texts)
@@ -550,5 +601,59 @@ class Room
         (
             $name ? ' ' . $name : null
         );
+    }
+
+    private function _clitoris(string $namespace): ?string
+    {
+        // Validate namespace supported to continue
+        if (preg_match('/^N[A-z0-9]{33}$/', $namespace))
+        {
+            // Get meta data by namespace
+            if ($clitoris = $this->_kevacoin->kevaGet($namespace, '_CLITOR_IS_'))
+            {
+                $reader = new \ClitorIsProtocol\Kevacoin\Reader(
+                    $clitoris['value']
+                );
+
+                if ($reader->valid())
+                {
+                    return sprintf(
+                        '%s (%s)',
+                        $reader->fileName() ? $reader->fileName() : $namespace,
+                        $this->_bytes(
+                            (int) $reader->fileSize()
+                        )
+                    );
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public function _namespace(string $namespace): ?string
+    {
+        // Find local name
+        foreach ((array) $this->_kevacoin->kevaListNamespaces() as $record)
+        {
+            if ($record['namespaceId'] == $namespace)
+            {
+                return $record['displayName'];
+            }
+        }
+
+        // Get namespace records (solution for remote nodes)
+        if ($records = (array) $this->_kevacoin->kevaFilter($namespace))
+        {
+            foreach ($records as $record)
+            {
+                if ($record['key'] == '_KEVA_NS_')
+                {
+                    return $record['value'];
+                }
+            }
+        }
+
+        return null;
     }
 }
