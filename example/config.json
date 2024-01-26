@@ -30,14 +30,12 @@
     },
     "kevachat":
     {
-        "link":
-        {
-            "about":
-            [
-                "https://github.com/kevachat/geminiapp",
-                "https://github.com/kevachat/webapp"
-            ]
-        },
+        "about":
+        [
+            "=> /room/NfqYRoWFZAydVyS4GjDa6o31CDSpGXVyXE Official room",
+            "=> https://github.com/kevachat/geminiapp Geminiapp source",
+            "=> https://github.com/kevachat/webapp Webapp source"
+        ],
         "room":
         {
             "key":

@@ -128,7 +128,7 @@ class Room
                 ),
                 implode(
                     PHP_EOL,
-                    $this->_config->kevachat->link->about
+                    $this->_config->kevachat->about
                 ),
                 implode(
                     PHP_EOL,
