@@ -90,7 +90,7 @@ class Room
                 [
                     $namespace['name'],
                     $namespace['total'],
-                    $this->_url(
+                    $this->_link(
                         sprintf(
                             '/room/%s',
                             $namespace['namespace']
@@ -178,8 +178,8 @@ class Room
                 file_get_contents(
                     __DIR__ . '/../../logo.ascii'
                 ),
-                $this->_url(),
-                $this->_url( // @TODO
+                $this->_link(),
+                $this->_link( // @TODO
                     sprintf(
                         '/room/%s/post',
                         $namespace
@@ -262,27 +262,9 @@ class Room
                 {
                     if ($post['txid'] == $quote)
                     {
-                        // Strip folding
-                        $quote = '>' .
-                        trim(
-                            preg_replace(
-                                '/^@([A-z0-9]{64}[\n\r]?)/',
-                                null,
-                                // Add quote after each new line
-                                str_replace(
-                                    PHP_EOL,
-                                    PHP_EOL . '>',
-                                    preg_replace(
-                                        '/[\n\r]+/',
-                                        PHP_EOL,
-                                        // Ignore markup
-                                        $this->_escape(
-                                            $post['value']
-                                        )
-                                    )
-                                )
-                            ),
-                            '>'
+                        $quote = $this->_quote(
+                            $post['value'],
+                            true
                         );
 
                         break;
@@ -293,12 +275,8 @@ class Room
                 $record['value'] = preg_replace(
                     '/^@([A-z0-9]{64})/',
                     null,
-                    preg_replace(
-                        '/[\n\r]+/',
-                        PHP_EOL,
-                        $this->_escape(
-                            $record['value']
-                        )
+                    $this->_escape(
+                        $record['value']
                     )
                 );
             }
@@ -308,39 +286,64 @@ class Room
         $time = $matches[1];
 
         // Build final view and send to response
-        return str_replace(
+        return
+
+        // Allow up to 2 line separators
+        preg_replace(
             [
-                '{txid}',
-                '{time}',
-                '{author}',
-                '{quote}',
-                '{message}',
-                '{reply}'
+                '/[\n\r]{1}/',
+                '/[\n\r]{3,}/'
             ],
             [
-                $record['txid'],
-                $this->_ago(
-                    $matches[1]
-                ),
-                '@' . $matches[2],
-                $quote,
-                preg_replace(
-                    '/[\n\r]+/',
-                    PHP_EOL,
+                PHP_EOL,
+                PHP_EOL . PHP_EOL
+            ],
+
+            // Apply macros
+            str_replace(
+                [
+                    '{time}',
+                    '{author}',
+                    '{quote}',
+                    '{message}',
+                    '{links}'
+                ],
+                [
+                    // time
+                    $this->_ago(
+                        $matches[1]
+                    ),
+
+                    // author
+                    '@' . $matches[2],
+
+                    // quote
+                    $quote,
+
+                    // message
                     $this->_escape(
                         $record['value']
+                    ),
+
+                    // links
+                    implode(
+                        PHP_EOL,
+                        [
+                            $this->_link(
+                                sprintf(
+                                    '/room/%s/reply/%s',
+                                    $namespace,
+                                    $record['txid'],
+                                ),
+                                _('Reply'),
+                                true
+                            )
+                        ]
                     )
-                ),
-                $this->_url( // @TODO
-                    sprintf(
-                        '/room/%s/reply/%s',
-                        $namespace,
-                        $record['txid'],
-                    )
+                ],
+                file_get_contents(
+                    __DIR__ . '/../view/post.gemini'
                 )
-            ],
-            file_get_contents(
-                __DIR__ . '/../view/post.gemini'
             )
         );
     }
@@ -469,15 +472,66 @@ class Room
         }
 
         // Merge lines
-        return implode(
-            PHP_EOL,
-            $lines
+        return trim(
+            implode(
+                PHP_EOL,
+                $lines
+            )
         );
     }
 
-    private function _url(?string $path = null, ?string $name = null)
+    private function _quote(string $value, ?bool $tag = false)
+    {
+        // Escape special chars
+        $value = $this->_escape(
+            $value
+        );
+
+        // Remove mention ID from quote
+        $value = preg_replace(
+            '/^@([A-z0-9]{64})/',
+            null,
+            $this->_escape(
+                $value
+            )
+        );
+
+        // Process each line
+        $lines = [];
+
+        foreach ((array) explode(PHP_EOL, $value) as $line)
+        {
+            // Skip empty lines
+            if (empty($line))
+            {
+                continue;
+            }
+
+            // Append quote tag if requested
+            if ($tag)
+            {
+                $line = '> ' . $line;
+            }
+
+            $lines[] = $line;
+        }
+
+        // Merge lines
+        return trim(
+            implode(
+                PHP_EOL,
+                $lines
+            )
+        );
+    }
+
+    private function _link(?string $path = null, ?string $name = null, ?bool $tag = false)
     {
         return
+        (
+            $tag ? '=> ' : null
+        )
+        .
         (
             $this->_config->gemini->server->port == 1965 ?
             sprintf(
