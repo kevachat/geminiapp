@@ -48,7 +48,7 @@ class Room
             foreach ((array) $this->_kevacoin->kevaFilter($namespace['namespaceId']) as $record)
             {
                 // Is protocol compatible post
-                if ($this->post($namespace['namespaceId'], $record['key'], [], 'txid'))
+                if ($this->_post($namespace['namespaceId'], $record['key'], [], 'txid'))
                 {
                     $total++;
                 }
@@ -140,7 +140,7 @@ class Room
 
         foreach ($records as $record)
         {
-            if ($post = $this->post($namespace, $record['key'], $records, null, $time))
+            if ($post = $this->_post($namespace, $record['key'], $records, null, $time))
             {
                 $posts[$time] = $post;
             }
@@ -192,7 +192,7 @@ class Room
         );
     }
 
-    public function post(string $namespace, string $key, array $posts = [], ?string $field = null, ?int &$time = 0): ?string
+    private function _post(string $namespace, string $key, array $posts = [], ?string $field = null, ?int &$time = 0): ?string
     {
         // Check record exists
         if (!$record = (array) $this->_kevacoin->kevaGet($namespace, $key))
