@@ -1,4 +1,4 @@
-# KevaChat Application for Gemini Protocol
+# KevaChat App for Gemini Protocol
 
 ```
   _  __                ____ _           _
