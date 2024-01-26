@@ -295,6 +295,7 @@ class Room
                 '{author}',
                 '{quote}',
                 '{message}',
+                '{reply}',
                 PHP_EOL . PHP_EOL
             ],
             [
@@ -306,6 +307,13 @@ class Room
                 $quote,
                 $this->_plain(
                     $record['value']
+                ),
+                $this->_url( // @TODO
+                    sprintf(
+                        '/room/%s/reply/%s',
+                        $namespace,
+                        $record['txid'],
+                    )
                 ),
                 PHP_EOL
             ],

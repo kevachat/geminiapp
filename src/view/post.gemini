@@ -1,9 +1,7 @@
-### {author}
+### {author} [{time}]
 
 {quote}
 {message}
 
 
-```
-{time} #{txid}
-```
+=> {reply} Reply
