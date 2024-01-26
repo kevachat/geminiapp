@@ -207,24 +207,24 @@ class Room
         );
     }
 
-    public function post(string $namespace, ?string $txid, int $session, string $message): bool
+    public function post(string $namespace, ?string $txid, int $session, string $message): ?string
     {
         // Validate funds available yet
         if (1 > $this->_kevacoin->getBalance())
         {
-            return false;
+            return null;
         }
 
         // Validate session exists
         if (!$this->_memory->get($session))
         {
-            return false;
+            return null;
         }
 
         // Validate value format allowed in settings
         if (!preg_match((string) $this->_config->kevachat->post->value->regex, $message))
         {
-            return false;
+            return null;
         }
 
         // Prepare message
@@ -245,29 +245,58 @@ class Room
         // Validate final message length
         if (mb_strlen($message) < 1 || mb_strlen($message) > 3072)
         {
-            return false;
+            return null;
         }
 
         // Send message
-        if (!$this->_kevacoin->kevaPut(
+        if
+        (
+            $txid = $this->_kevacoin->kevaPut(
                 $namespace,
                 sprintf(
                     '%s@anon',
                     time()
                 ),
                 $message
-        ))
+            )
+        )
         {
-            return false;
+            // Cleanup memory
+            $this->_memory->delete(
+                $session
+            );
+
+            // Success
+            return $txid;
         }
 
-        // Cleanup memory
-        $this->_memory->delete(
-            $session
-        );
+        return null;
+    }
 
-        // Success
-        return true;
+    public function sent(string $namespace, string $txid)
+    {
+        return str_replace(
+            [
+                '{logo}',
+                '{txid}',
+                '{room}'
+            ],
+            [
+                file_get_contents(
+                    __DIR__ . '/../../logo.ascii'
+                ),
+                $txid,
+                $this->_link(
+                    sprintf(
+                        '/room/%s',
+                        $namespace
+                    )
+                )
+            ],
+            file_get_contents(
+                __DIR__ . '/../view/sent.gemini'
+            )
+        );
     }
 
     private function _post(string $namespace, string $key, array $posts = [], ?string $field = null, ?int &$time = 0): ?string

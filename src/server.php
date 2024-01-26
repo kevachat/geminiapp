@@ -197,20 +197,16 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
                                 );
 
                                 // Success, redirect to this room page
-                                if ($room->post($matches[1], null, $matches[2], $request->getQuery()))
+                                if ($txid = $room->post($matches[1], null, $matches[2], $request->getQuery()))
                                 {
-                                    $response->setCode(
-                                        30
-                                    );
+                                    if ($result = $room->sent($matches[1], $txid))
+                                    {
+                                        $response->setContent(
+                                            $result
+                                        );
 
-                                    $response->setMeta(
-                                        sprintf(
-                                            '/room/%s',
-                                            $matches[1]
-                                        )
-                                    );
-
-                                    return $response;
+                                        return $response;
+                                    }
                                 }
                             }
                         }
@@ -246,20 +242,16 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
                                 );
 
                                 // Success, redirect to this room page
-                                if ($room->post($matches[1], $matches[2], $matches[3], $request->getQuery()))
+                                if ($txid = $room->post($matches[1], $matches[2], $matches[3], $request->getQuery()))
                                 {
-                                    $response->setCode(
-                                        30
-                                    );
+                                    if ($result = $room->sent($matches[1], $txid))
+                                    {
+                                        $response->setContent(
+                                            $result
+                                        );
 
-                                    $response->setMeta(
-                                        sprintf(
-                                            '/room/%s',
-                                            $matches[1]
-                                        )
-                                    );
-
-                                    return $response;
+                                        return $response;
+                                    }
                                 }
                             }
                         }
