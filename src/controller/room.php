@@ -135,6 +135,17 @@ class Room
             return null;
         }
 
+        // Get subject
+        $subject = null;
+
+        foreach ((array) $this->_kevacoin->kevaListNamespaces() as $record) // find local room name
+        {
+            if ($record['namespaceId'] == $namespace)
+            {
+                $subject = $record['displayName'];
+            }
+        }
+
         // Get posts
         $posts = [];
 
@@ -144,21 +155,15 @@ class Room
             {
                 $posts[$time] = $post;
             }
+
+            if ($record['key'] == '_KEVA_NS_') // find remote room name
+            {
+                $subject = $record['value'];
+            }
         }
 
         // Sort posts by time
         krsort($posts);
-
-        // Get subject
-        $subject = null;
-
-        foreach ((array) $this->_kevacoin->kevaListNamespaces() as $record)
-        {
-            if ($record['namespaceId'] == $namespace)
-            {
-                $subject = $record['displayName'];
-            }
-        }
 
         // Get template
         return str_replace(
