@@ -244,7 +244,7 @@ class Room
         // Legacy usernames backport
         if (!preg_match((string) $this->_config->kevachat->user->name->regex, $matches[2]))
         {
-            $matches[2] = '@anon';
+            $matches[2] = 'anon';
         }
 
         // Try to find related quote value
