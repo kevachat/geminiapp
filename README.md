@@ -38,8 +38,8 @@ KevaChat is distributed chat platform for open, uncensored and privacy respectab
 
 ## Start
 
-* `php src/server.php`
+* `php src/server.php 127.0.0.1`
 
 ## See also
 
-* [web implementation](https://github.com/kevachat/webapp)
+* [KevaChat Web Application](https://github.com/kevachat/webapp)
