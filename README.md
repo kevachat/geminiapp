@@ -33,7 +33,7 @@ KevaChat is distributed chat platform for open, uncensored and privacy respectab
 
 * `mkdir host/127.0.0.1`
 * `cp example/config.json host/127.0.0.1/config.json`
-* `cp host/127.0.0.1`
+* `cd host/127.0.0.1`
 * `openssl req -x509 -newkey rsa:4096 -keyout key.rsa -out cert.pem -days 365 -nodes -subj "/CN=127.0.0.1"`
 
 ## Start
