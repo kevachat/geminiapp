@@ -18,6 +18,15 @@
             "port":1965
         }
     },
+    "memcached":
+    {
+        "server":
+        {
+            "host":"127.0.0.1",
+            "port":11211,
+            "timeout":3600
+        }
+    },
     "kevachat":
     {
         "link":
