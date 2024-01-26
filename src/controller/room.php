@@ -59,11 +59,7 @@ class Room
             [
                 'namespace' => $namespace['namespaceId'],
                 'name'      => $namespace['displayName'],
-                'total'     => $total,
-                'pin'       => in_array(
-                    $namespace['namespaceId'],
-                    $this->_config->kevachat->room->pin
-                )
+                'total'     => $total
             ];
         }
 
@@ -109,11 +105,16 @@ class Room
         return str_replace(
             [
                 '{logo}',
+                '{about}',
                 '{rooms}'
             ],
             [
                 file_get_contents(
                     __DIR__ . '/../../logo.ascii'
+                ),
+                implode(
+                    PHP_EOL,
+                    $this->_config->kevachat->link->about
                 ),
                 implode(
                     PHP_EOL,
@@ -409,9 +410,10 @@ class Room
         );
     }
 
-    private function _url(?string $path = null)
+    private function _url(?string $path = null, ?string $name = null)
     {
-        return (
+        return
+        (
             $this->_config->gemini->server->port == 1965 ?
             sprintf(
                 'gemini://%s%s',
@@ -424,6 +426,10 @@ class Room
                 $this->_config->gemini->server->port,
                 $path
             )
+        )
+        .
+        (
+            $name ? ' ' . $name : null
         );
     }
 }
