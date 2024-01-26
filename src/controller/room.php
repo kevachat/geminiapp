@@ -294,6 +294,7 @@ class Room
                 '{author}',
                 '{quote}',
                 '{message}',
+                PHP_EOL . PHP_EOL
             ],
             [
                 $record['txid'],
@@ -301,11 +302,11 @@ class Room
                     $matches[1]
                 ),
                 '@' . $matches[2],
-                $quote
-                ,
+                $quote,
                 $this->_plain(
                     $record['value']
-                )
+                ),
+                PHP_EOL
             ],
             file_get_contents(
                 __DIR__ . '/../view/post.gemini'

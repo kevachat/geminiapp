@@ -1,6 +1,9 @@
 ### {author}
+
 {quote}
 {message}
+
+
 ```
 {time} #{txid}
 ```
