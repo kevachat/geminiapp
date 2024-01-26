@@ -1,4 +1,4 @@
-# geminiapp
+# KevaChat Application for Gemini Protocol
 
 ```
   _  __                ____ _           _
@@ -8,7 +8,10 @@
  |_|\_\___| \_/ \__,_|\____|_| |_|\__,_|\__|
 
 ```
-KevaChat Application for Gemini Protocol
+
+KevaChat is distributed chat platform for open, uncensored and privacy respectable communication with permanent data storage in blockchain.
+
+See also: ([web implementation](https://github.com/kevachat/webapp))
 
 ## Roadmap
 
