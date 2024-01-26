@@ -11,6 +11,11 @@
 
 KevaChat is distributed chat platform for open, uncensored and privacy respectable communication with permanent data storage in blockchain.
 
+## Example
+
+* `gemini://[301:23b4:991a:634d::1965]` - Yggdrasil
+* `gemini://kevachat.ygg` - Yggdrasil / Alfis DNS
+
 ## Roadmap
 
 * [x] Multiple host support
@@ -21,6 +26,7 @@ KevaChat is distributed chat platform for open, uncensored and privacy respectab
 * [ ] Rooms publication
 * [x] Media viewer
 * [ ] Users auth
+* [ ] RSS
 * [x] Error handlers
 
 ## Install
