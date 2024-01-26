@@ -94,17 +94,9 @@ class Room
                 [
                     $namespace['name'],
                     $namespace['total'],
-                    (
-                        $this->_config->gemini->server->port == 1965 ?
+                    $this->_url(
                         sprintf(
-                            'gemini://%s/room/%s',
-                            $this->_config->gemini->server->host,
-                            $namespace['namespace']
-                        ) :
-                        sprintf(
-                            'gemini://%s:%d/%s',
-                            $this->_config->gemini->server->host,
-                            $this->_config->gemini->server->port,
+                            '/room/%s',
                             $namespace['namespace']
                         )
                     )
@@ -171,6 +163,7 @@ class Room
         return str_replace(
             [
                 '{logo}',
+                '{home}',
                 '{subject}',
                 '{posts}'
             ],
@@ -178,6 +171,7 @@ class Room
                 file_get_contents(
                     __DIR__ . '/../../logo.ascii'
                 ),
+                $this->_url(),
                 $subject ? $subject : $namespace,
                 implode(
                     PHP_EOL,
@@ -410,6 +404,24 @@ class Room
                 ],
                 null,
                 $value
+            )
+        );
+    }
+
+    private function _url(?string $path = null)
+    {
+        return (
+            $this->_config->gemini->server->port == 1965 ?
+            sprintf(
+                'gemini://%s%s',
+                $this->_config->gemini->server->host,
+                $path
+            ) :
+            sprintf(
+                'gemini://%s:%d%s',
+                $this->_config->gemini->server->host,
+                $this->_config->gemini->server->port,
+                $path
             )
         );
     }
