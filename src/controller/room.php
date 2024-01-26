@@ -239,7 +239,7 @@ class Room
         // Append mention if provided
         if ($txid)
         {
-            $message = $txid . PHP_EOL . $message;
+            $message = '@' . $txid . PHP_EOL . $message;
         }
 
         // Validate final message length
