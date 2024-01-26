@@ -104,24 +104,53 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
                 // Dynamical requests
                 default:
 
-                    // Room posts by namespace
-                    if (preg_match('/^\/room\/(N[A-z0-9]{33})$/', $request->getPath(), $matches))
+                    if (preg_match('/^\/([A-z]+)\/(N[A-z0-9]{33})$/', $request->getPath(), $matches))
                     {
-                        if (!empty($matches[1]))
+                        if (!empty($matches[1]) && !empty($matches[2]))
                         {
-                            include_once __DIR__ . '/controller/room.php';
-
-                            $room = new \Kevachat\Geminiapp\Controller\Room(
-                                $config
-                            );
-
-                            if ($posts = $room->posts($matches[1]))
+                            switch ($matches[1])
                             {
-                                $response->setContent(
-                                    $posts
-                                );
+                                case 'room':
 
-                                return $response;
+                                    include_once __DIR__ . '/controller/room.php';
+
+                                    $room = new \Kevachat\Geminiapp\Controller\Room(
+                                        $config
+                                    );
+
+                                    if ($posts = $room->posts($matches[2]))
+                                    {
+                                        $response->setContent(
+                                            $posts
+                                        );
+
+                                        return $response;
+                                    }
+
+                                break;
+
+                                case 'raw':
+
+                                    include_once __DIR__ . '/controller/media.php';
+
+                                    $media = new \Kevachat\Geminiapp\Controller\Media(
+                                        $config
+                                    );
+
+                                    if ($data = $media->raw($matches[2], $mime))
+                                    {
+                                        $response->setMeta(
+                                            $mime
+                                        );
+
+                                        $response->setContent(
+                                            $data
+                                        );
+
+                                        return $response;
+                                    }
+
+                                break;
                             }
                         }
                     }
