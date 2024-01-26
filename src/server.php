@@ -82,6 +82,7 @@ foreach ((array) scandir(__DIR__ . '/../host') as $host)
             switch ($request->getPath())
             {
                 // Home page
+                case null:
                 case '/':
 
                     // Get rooms list
