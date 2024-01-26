@@ -165,6 +165,7 @@ class Room
             [
                 '{logo}',
                 '{home}',
+                '{post}',
                 '{subject}',
                 '{posts}'
             ],
@@ -173,6 +174,12 @@ class Room
                     __DIR__ . '/../../logo.ascii'
                 ),
                 $this->_url(),
+                $this->_url( // @TODO
+                    sprintf(
+                        '/room/%s/post',
+                        $namespace
+                    )
+                ),
                 $subject ? $subject : $namespace,
                 implode(
                     PHP_EOL,
