@@ -276,7 +276,7 @@ class Room
                                         '/[\n\r]+/',
                                         PHP_EOL,
                                         // Ignore markup
-                                        $this->_plain(
+                                        $this->_escape(
                                             $post['value']
                                         )
                                     )
@@ -296,7 +296,7 @@ class Room
                     preg_replace(
                         '/[\n\r]+/',
                         PHP_EOL,
-                        $this->_plain(
+                        $this->_escape(
                             $record['value']
                         )
                     )
@@ -327,7 +327,7 @@ class Room
                 preg_replace(
                     '/[\n\r]+/',
                     PHP_EOL,
-                    $this->_plain(
+                    $this->_escape(
                         $record['value']
                     )
                 ),
@@ -421,10 +421,20 @@ class Room
         return $texts[(($number % 100) > 4 && ($number % 100) < 20) ? 2 : $cases[min($number % 10, 5)]];
     }
 
-    private function _plain(string $value)
+    private function _escape(string $value)
     {
-        return trim(
-            str_replace(
+        // Process each line
+        $lines = [];
+
+        foreach ((array) explode(PHP_EOL, $value) as $line)
+        {
+            // Trim extra separators
+            $line = trim(
+                $line
+            );
+
+            // Process each tag on line beginning
+            foreach (
                 [
                     '#',
                     '##',
@@ -433,18 +443,35 @@ class Room
                     '>',
                     '*',
                     '```'
-                ],
-                [
-                    ' #',
-                    ' ##',
-                    ' ###',
-                    ' =>',
-                    ' >',
-                    ' *',
-                    ' ```'
-                ],
-                $value
+                ] as $tag
             )
+            {
+                // Escape tags
+                $line = preg_replace(
+                    sprintf(
+                        '/^(\%s)/',
+                        $tag
+                    ),
+                    '[$1]',
+                    $line
+                );
+            }
+
+            // Escape inline *
+            $line = preg_replace(
+                '/[*]{1}([^*]+)[*]{1}/',
+                '[*]$2[*]',
+                $line
+            );
+
+            // Merge lines
+            $lines[] = $line;
+        }
+
+        // Merge lines
+        return implode(
+            PHP_EOL,
+            $lines
         );
     }
 
