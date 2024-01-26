@@ -261,15 +261,19 @@ class Room
                         $quote = '>' .
                         trim(
                             preg_replace(
-                                '/^@([A-z0-9]{64})/',
+                                '/^@([A-z0-9]{64}[\n\r]?)/',
                                 null,
                                 // Add quote after each new line
                                 str_replace(
                                     PHP_EOL,
                                     PHP_EOL . '>',
-                                    // Ignore markup
-                                    $this->_plain(
-                                        $post['value']
+                                    preg_replace(
+                                        '/[\n\r]+/',
+                                        PHP_EOL,
+                                        // Ignore markup
+                                        $this->_plain(
+                                            $post['value']
+                                        )
                                     )
                                 )
                             ),
@@ -284,8 +288,12 @@ class Room
                 $record['value'] = preg_replace(
                     '/^@([A-z0-9]{64})/',
                     null,
-                    $this->_plain(
-                        $record['value']
+                    preg_replace(
+                        '/[\n\r]+/',
+                        PHP_EOL,
+                        $this->_plain(
+                            $record['value']
+                        )
                     )
                 );
             }
@@ -302,8 +310,7 @@ class Room
                 '{author}',
                 '{quote}',
                 '{message}',
-                '{reply}',
-                PHP_EOL . PHP_EOL
+                '{reply}'
             ],
             [
                 $record['txid'],
@@ -312,8 +319,12 @@ class Room
                 ),
                 '@' . $matches[2],
                 $quote,
-                $this->_plain(
-                    $record['value']
+                preg_replace(
+                    '/[\n\r]+/',
+                    PHP_EOL,
+                    $this->_plain(
+                        $record['value']
+                    )
                 ),
                 $this->_url( // @TODO
                     sprintf(
@@ -321,8 +332,7 @@ class Room
                         $namespace,
                         $record['txid'],
                     )
-                ),
-                PHP_EOL
+                )
             ],
             file_get_contents(
                 __DIR__ . '/../view/post.gemini'
@@ -414,12 +424,20 @@ class Room
                     '#',
                     '##',
                     '###',
+                    '=>',
                     '>',
                     '*',
-                    '```',
-                    '=>',
+                    '```'
                 ],
-                null,
+                [
+                    ' #',
+                    ' ##',
+                    ' ###',
+                    ' =>',
+                    ' >',
+                    ' *',
+                    ' ```'
+                ],
                 $value
             )
         );
