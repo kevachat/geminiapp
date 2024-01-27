@@ -352,7 +352,7 @@ class Room
         );
     }
 
-    private function _post(string $namespace, string $key, array $posts = [], ?string $field = null, ?int &$time = 0): ?string
+    private function _post(string $namespace, string $key, array $posts = [], ?string $field = null, ?int &$time = 0, ?int $cache = 31104000): ?string
     {
         // Check for cache
         $result = $this->_memory->get(
@@ -570,7 +570,8 @@ class Room
                 $key,
                 $field
             ],
-            $result
+            $result,
+            $cache
         );
 
         $this->_memory->set(
@@ -581,7 +582,8 @@ class Room
                 $field,
                 $time
             ],
-            $time
+            $time,
+            $cache
         );
 
         return $result;
@@ -816,7 +818,7 @@ class Room
         );
     }
 
-    private function _clitoris(string $namespace): ?string
+    private function _clitoris(string $namespace, ?int $cache = 31104000): ?string
     {
         // Check for cache
         if ($result = $this->_memory->get([__METHOD__, $namespace]))
@@ -849,7 +851,8 @@ class Room
                             __METHOD__,
                             $namespace
                         ],
-                        $result
+                        $result,
+                        $cache
                     );
 
                     return $result;
@@ -860,7 +863,7 @@ class Room
         return null;
     }
 
-    public function _namespace(string $namespace): ?string
+    public function _namespace(string $namespace, ?int $cache = 31104000): ?string
     {
         // Check for cache
         if ($result = $this->_memory->get([__METHOD__, $namespace]))
@@ -878,7 +881,8 @@ class Room
                         __METHOD__,
                         $namespace
                     ],
-                    $record['displayName']
+                    $record['displayName'],
+                    $cache
                 );
 
                 return $record['displayName'];
@@ -892,13 +896,13 @@ class Room
             {
                 if ($record['key'] == '_KEVA_NS_')
                 {
-
                     $this->_memory->set(
                         [
                             __METHOD__,
                             $namespace
                         ],
-                        $record['value']
+                        $record['value'],
+                        $cache
                     );
 
                     return $record['value'];
