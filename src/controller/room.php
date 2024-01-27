@@ -143,6 +143,12 @@ class Room
 
     public function posts(string $namespace): ?string
     {
+        // Check for cache
+        if ($result = $this->_memory->get([__METHOD__, $namespace]))
+        {
+            return $result;
+        }
+
         // Get namespace records
         if (!$records = (array) $this->_kevacoin->kevaFilter($namespace))
         {
@@ -191,8 +197,8 @@ class Room
         // Sort posts by time
         krsort($posts);
 
-        // Get template
-        return str_replace(
+        // Get result
+        $result = str_replace(
             [
                 '{logo}',
                 '{home}',
@@ -233,6 +239,17 @@ class Room
                 __DIR__ . '/../view/posts.gemini'
             )
         );
+
+        // Save to cache
+        $this->_memory->set(
+            [
+                __METHOD__,
+                $namespace
+            ],
+            $result
+        );
+
+        return $result;
     }
 
     public function post(string $namespace, ?string $txid, int $session, string $message): ?string
