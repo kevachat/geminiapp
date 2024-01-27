@@ -159,7 +159,7 @@ class Room
 
     public function posts(string $namespace): ?string
     {
-        // Get records by namespace
+        // Get all records by namespace
         if (!$records = (array) $this->_records($namespace))
         {
             return null;
@@ -168,18 +168,19 @@ class Room
         // Get posts
         $posts = [];
 
-        foreach ($records as $record)
+        // Get pending posts
+        foreach ($this->_pending() as $pending)
         {
-            if ($post = $this->_post($namespace, $record['key'], $records, null, $time))
+            if ($post = $this->_post($namespace, $pending['key'], $records, null, $time))
             {
                 $posts[$time] = $post;
             }
         }
 
-        // Get pending posts
-        foreach ($this->_pending() as $pending)
+        // Get saved posts
+        foreach ($records as $record)
         {
-            if ($post = $this->_post($namespace, $pending['key'], $records, null, $time))
+            if ($post = $this->_post($namespace, $record['key'], $records, null, $time))
             {
                 $posts[$time] = $post;
             }
@@ -295,12 +296,6 @@ class Room
             );
 
             // Reset cache
-            $this->_memory->delete(
-                [
-                    'Kevachat\Geminiapp\Controller\Room::_pending'
-                ]
-            );
-
             $this->_memory->delete(
                 [
                     'Kevachat\Geminiapp\Controller\Room::_records',
