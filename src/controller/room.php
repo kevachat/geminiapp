@@ -149,12 +149,40 @@ class Room
             return null;
         }
 
-        // Get posts
+        // Get saved posts
         $posts = [];
 
         foreach ($records as $record)
         {
             if ($post = $this->_post($namespace, $record['key'], $records, null, $time))
+            {
+                $posts[$time] = $post;
+            }
+        }
+
+        // Get pending posts
+        foreach ((array) $this->_kevacoin->kevaPending() as $pending)
+        {
+            // Ignore pending posts from other rooms
+            if ($pending['namespace'] != $namespace)
+            {
+                continue;
+            }
+
+            // Ignore everything in pending queue but keva_put
+            if ($pending['op'] != 'keva_put')
+            {
+                continue;
+            }
+
+            // Skip meta
+            if (str_starts_with($pending['key'], '_'))
+            {
+                continue;
+            }
+
+            // Require valid kevachat post
+            if ($post = $this->_post($namespace, $pending['key'], $records, null, $time))
             {
                 $posts[$time] = $post;
             }
