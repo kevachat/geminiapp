@@ -311,6 +311,14 @@ class Room
                 $session
             );
 
+            // Reset post list cache for this room
+            $this->_memory->delete(
+                [
+                    '\Kevachat\Geminiapp\Controller\Room::posts',
+                    $namespace
+                ]
+            );
+
             // Success
             return $txid;
         }
