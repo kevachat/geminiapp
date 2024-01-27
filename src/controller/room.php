@@ -559,7 +559,7 @@ class Room
                 $field
             ],
             $result,
-            $cache
+            $cache + time()
         );
 
         $this->_memory->set(
@@ -568,10 +568,10 @@ class Room
                 $namespace,
                 $key,
                 $field,
-                $time
+                'time'
             ],
             $time,
-            $cache
+            $cache + time()
         );
 
         return $result;
@@ -840,7 +840,7 @@ class Room
                             $namespace
                         ],
                         $result,
-                        $cache
+                        $cache + time()
                     );
 
                     return $result;
@@ -870,7 +870,7 @@ class Room
                         $namespace
                     ],
                     $record['displayName'],
-                    $cache
+                    $cache + time()
                 );
 
                 return $record['displayName'];
@@ -890,7 +890,7 @@ class Room
                             $namespace
                         ],
                         $record['value'],
-                        $cache
+                        $cache + time()
                     );
 
                     return $record['value'];
@@ -903,13 +903,6 @@ class Room
 
     private function _pending(): array
     {
-        // Check for cache
-        if ($result = $this->_memory->get([__METHOD__]))
-        {
-            return $result;
-        }
-
-        // Get pending posts
         $result = [];
 
         foreach ((array) $this->_kevacoin->kevaPending() as $pending)
@@ -934,14 +927,6 @@ class Room
 
             $result[] = $pending;
         }
-
-        // Save to cache
-        $this->_memory->set(
-            [
-                __METHOD__
-            ],
-            $result
-        );
 
         return $result;
     }
