@@ -160,7 +160,7 @@ class Room
     public function posts(string $namespace): ?string
     {
         // Get all records by namespace
-        if (!$records = (array) $this->_records($namespace))
+        if (!$records = $this->_records($namespace))
         {
             return null;
         }
