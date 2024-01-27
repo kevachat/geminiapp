@@ -329,6 +329,29 @@ class Room
 
     private function _post(string $namespace, string $key, array $posts = [], ?string $field = null, ?int &$time = 0): ?string
     {
+        // Check for cache
+        $result = $this->_memory->get(
+            [
+                $namespace,
+                $key,
+                $field
+            ]
+        );
+
+        $time = $this->_memory->get(
+            [
+                $namespace,
+                $key,
+                $field,
+                'time'
+            ]
+        );
+
+        if ($result && $time)
+        {
+            return $result;
+        }
+
         // Check record exists
         if (!$record = (array) $this->_kevacoin->kevaGet($namespace, $key))
         {
@@ -463,11 +486,8 @@ class Room
         // Return timestamp
         $time = $matches[1];
 
-        // Build final view and send to response
-        return
-
-        // Allow up to 2 line separators
-        preg_replace(
+        // Build final view and save to result
+        $result = preg_replace(
             [
                 '/[\n\r]{1}/',
                 '/[\n\r]{3,}/'
@@ -514,6 +534,30 @@ class Room
                 )
             )
         );
+
+        // Check for cached results
+        $this->_memory->set(
+            [
+                $namespace,
+                $key,
+                $field
+            ],
+            $result,
+            time() + 60
+        );
+
+        $this->_memory->set(
+            [
+                $namespace,
+                $key,
+                $field,
+                $time
+            ],
+            $time,
+            time() + 60
+        );
+
+        return $result;
     }
 
     private function _ago(int $time): string
