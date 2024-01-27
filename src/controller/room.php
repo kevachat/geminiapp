@@ -537,7 +537,7 @@ class Room
             )
         );
 
-        // Check for cached results
+        // Cache results
         $this->_memory->set(
             [
                 __METHOD__,
@@ -851,6 +851,15 @@ class Room
             {
                 if ($record['key'] == '_KEVA_NS_')
                 {
+
+                    $this->_memory->set(
+                        [
+                            __METHOD__,
+                            $namespace
+                        ],
+                        $record['value']
+                    );
+
                     return $record['value'];
                 }
             }
