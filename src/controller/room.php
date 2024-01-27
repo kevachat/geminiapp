@@ -297,8 +297,7 @@ class Room
             // Reset cache
             $this->_memory->delete(
                 [
-                    'Kevachat\Geminiapp\Controller\Room::_pending',
-                    $namespace
+                    'Kevachat\Geminiapp\Controller\Room::_pending'
                 ]
             );
 
