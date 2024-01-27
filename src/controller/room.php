@@ -332,6 +332,7 @@ class Room
         // Check for cache
         $result = $this->_memory->get(
             [
+                'Room::_post',
                 $namespace,
                 $key,
                 $field
@@ -340,6 +341,7 @@ class Room
 
         $time = $this->_memory->get(
             [
+                'Room::_post',
                 $namespace,
                 $key,
                 $field,
@@ -538,23 +540,23 @@ class Room
         // Check for cached results
         $this->_memory->set(
             [
+                'Room::_post',
                 $namespace,
                 $key,
                 $field
             ],
-            $result,
-            time() + 60
+            $result
         );
 
         $this->_memory->set(
             [
+                'Room::_post',
                 $namespace,
                 $key,
                 $field,
                 $time
             ],
-            $time,
-            time() + 60
+            $time
         );
 
         return $result;
@@ -819,11 +821,25 @@ class Room
 
     public function _namespace(string $namespace): ?string
     {
+        // Check for cache
+        if ($result = $this->_memory->get(['Room::_namespace', $namespace]))
+        {
+            return $result;
+        }
+
         // Find local name
         foreach ((array) $this->_kevacoin->kevaListNamespaces() as $record)
         {
             if ($record['namespaceId'] == $namespace)
             {
+                $this->_memory->set(
+                    [
+                        'Room::_namespace',
+                        $namespace
+                    ],
+                    $time
+                );
+
                 return $record['displayName'];
             }
         }
