@@ -332,7 +332,7 @@ class Room
         // Check for cache
         $result = $this->_memory->get(
             [
-                'Room::_post',
+                __METHOD__,
                 $namespace,
                 $key,
                 $field
@@ -341,7 +341,7 @@ class Room
 
         $time = $this->_memory->get(
             [
-                'Room::_post',
+                __METHOD__,
                 $namespace,
                 $key,
                 $field,
@@ -540,7 +540,7 @@ class Room
         // Check for cached results
         $this->_memory->set(
             [
-                'Room::_post',
+                __METHOD__,
                 $namespace,
                 $key,
                 $field
@@ -550,7 +550,7 @@ class Room
 
         $this->_memory->set(
             [
-                'Room::_post',
+                __METHOD__,
                 $namespace,
                 $key,
                 $field,
@@ -822,7 +822,7 @@ class Room
     public function _namespace(string $namespace): ?string
     {
         // Check for cache
-        if ($result = $this->_memory->get(['Room::_namespace', $namespace]))
+        if ($result = $this->_memory->get([__METHOD__, $namespace]))
         {
             return $result;
         }
@@ -834,10 +834,10 @@ class Room
             {
                 $this->_memory->set(
                     [
-                        'Room::_namespace',
+                        __METHOD__,
                         $namespace
                     ],
-                    $time
+                    $record['displayName']
                 );
 
                 return $record['displayName'];
