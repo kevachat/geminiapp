@@ -159,19 +159,13 @@ class Room
 
     public function posts(string $namespace): ?string
     {
-        // Check for cache
-        if ($result = $this->_memory->get([__METHOD__, $namespace]))
-        {
-            return $result;
-        }
-
-        // Get namespace records
-        if (!$records = (array) $this->_kevacoin->kevaFilter($namespace))
+        // Get records by namespace
+        if (!$records = (array) $this->_records($namespace))
         {
             return null;
         }
 
-        // Get saved posts
+        // Get posts
         $posts = [];
 
         foreach ($records as $record)
@@ -183,27 +177,8 @@ class Room
         }
 
         // Get pending posts
-        foreach ((array) $this->_kevacoin->kevaPending() as $pending)
+        foreach ($this->_pending() as $pending)
         {
-            // Ignore pending posts from other rooms
-            if ($pending['namespace'] != $namespace)
-            {
-                continue;
-            }
-
-            // Ignore everything in pending queue but keva_put
-            if ($pending['op'] != 'keva_put')
-            {
-                continue;
-            }
-
-            // Skip meta
-            if (str_starts_with($pending['key'], '_'))
-            {
-                continue;
-            }
-
-            // Require valid kevachat post
             if ($post = $this->_post($namespace, $pending['key'], $records, null, $time))
             {
                 $posts[$time] = $post;
@@ -213,14 +188,15 @@ class Room
         // Sort posts by time
         krsort($posts);
 
-        // Get result
-        $result = str_replace(
+        // Build result
+        return str_replace(
             [
                 '{logo}',
                 '{home}',
                 '{post}',
                 '{subject}',
-                '{posts}'
+                '{posts}',
+                '{session}'
             ],
             [
                 // logo
@@ -234,9 +210,8 @@ class Room
                 // post
                 $this->_link( // @TODO
                     sprintf(
-                        '/room/%s/%d/post',
-                        $namespace,
-                        $this->_session
+                        '/room/%s/{session}/post',
+                        $namespace
                     )
                 ),
 
@@ -249,23 +224,15 @@ class Room
                 implode(
                     PHP_EOL,
                     $posts
-                )
+                ),
+
+                // session
+                $this->_session
             ],
             file_get_contents(
                 __DIR__ . '/../view/posts.gemini'
             )
         );
-
-        // Save to cache
-        $this->_memory->set(
-            [
-                __METHOD__,
-                $namespace
-            ],
-            $result
-        );
-
-        return $result;
     }
 
     public function post(string $namespace, ?string $txid, int $session, string $message): ?string
@@ -322,15 +289,22 @@ class Room
             )
         )
         {
-            // Cleanup memory
+            // Cleanup session
             $this->_memory->delete(
                 $session
             );
 
-            // Reset post list cache for this room
+            // Reset cache
             $this->_memory->delete(
                 [
-                    'Kevachat\Geminiapp\Controller\Room::posts',
+                    'Kevachat\Geminiapp\Controller\Room::_pending',
+                    $namespace
+                ]
+            );
+
+            $this->_memory->delete(
+                [
+                    'Kevachat\Geminiapp\Controller\Room::_records',
                     $namespace
                 ]
             );
@@ -517,10 +491,9 @@ class Room
         // Reply link
         $links[] = $this->_link(
             sprintf(
-                '/room/%s/%s/%d/reply',
+                '/room/%s/%s/{session}/reply',
                 $namespace,
-                $record['txid'],
-                $this->_session
+                $record['txid']
             ),
             _('Reply'),
             true
@@ -927,5 +900,74 @@ class Room
         }
 
         return null;
+    }
+
+    private function _pending(): array
+    {
+        // Check for cache
+        if ($result = $this->_memory->get([__METHOD__]))
+        {
+            return $result;
+        }
+
+        // Get pending posts
+        $result = [];
+
+        foreach ((array) $this->_kevacoin->kevaPending() as $pending)
+        {
+            // Ignore pending from other namespaces
+            if ($pending['namespace'] != $namespace)
+            {
+                continue;
+            }
+
+            // Ignore everything in pending queue but keva_put
+            if ($pending['op'] != 'keva_put')
+            {
+                continue;
+            }
+
+            // Skip meta
+            if (str_starts_with($pending['key'], '_'))
+            {
+                continue;
+            }
+
+            $result[] = $pending;
+        }
+
+        // Save to cache
+        $this->_memory->set(
+            [
+                __METHOD__
+            ],
+            $result
+        );
+
+        return $result;
+    }
+
+    private function _records(string $namespace): array
+    {
+        // Check for cache
+        if ($result = $this->_memory->get([__METHOD__]))
+        {
+            return $result;
+        }
+
+        // Get namespace records
+        $result = (array) $this->_kevacoin->kevaFilter(
+            $namespace
+        );
+
+        // Save to cache
+        $this->_memory->set(
+            [
+                __METHOD__
+            ],
+            $result
+        );
+
+        return $result;
     }
 }
