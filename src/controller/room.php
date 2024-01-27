@@ -5,16 +5,21 @@ namespace Kevachat\Geminiapp\Controller;
 class Room
 {
     private $_config;
-    private $_memory;
 
     private $_session;
 
     private \Kevachat\Kevacoin\Client $_kevacoin;
+    private \Yggverse\Cache\Memory $_memory;
 
-    public function __construct(\Yggverse\Cache\Memory $memory, $config)
+    public function __construct($config)
     {
         // Init memory
-        $this->_memory = $memory;
+        $this->_memory = new \Yggverse\Cache\Memory(
+            $config->memcached->server->host,
+            $config->memcached->server->port,
+            $config->memcached->server->namespace,
+            $config->memcached->server->timeout
+        );
 
         // Init session
         $this->_session = rand();

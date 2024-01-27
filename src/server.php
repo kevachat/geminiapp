@@ -49,14 +49,6 @@ $config = json_decode(
     )
 );
 
-// Init memory
-$memory = new \Yggverse\Cache\Memory(
-    $config->memcached->server->host,
-    $config->memcached->server->port,
-    $config->memcached->server->namespace,
-    $config->memcached->server->timeout
-);
-
 // Init server
 $server = new \Yggverse\TitanII\Server();
 
@@ -71,7 +63,6 @@ $server->setKey(
 $server->setHandler(
     function (\Yggverse\TitanII\Request $request): \Yggverse\TitanII\Response
     {
-        global $memory;
         global $config;
 
         $response = new \Yggverse\TitanII\Response();
@@ -95,7 +86,6 @@ $server->setHandler(
                 include_once __DIR__ . '/controller/room.php';
 
                 $room = new \Kevachat\Geminiapp\Controller\Room(
-                    $memory,
                     $config
                 );
 
@@ -123,7 +113,6 @@ $server->setHandler(
                                 include_once __DIR__ . '/controller/room.php';
 
                                 $room = new \Kevachat\Geminiapp\Controller\Room(
-                                    $memory,
                                     $config
                                 );
 
@@ -189,7 +178,6 @@ $server->setHandler(
                             include_once __DIR__ . '/controller/room.php';
 
                             $room = new \Kevachat\Geminiapp\Controller\Room(
-                                $memory,
                                 $config
                             );
 
@@ -234,7 +222,6 @@ $server->setHandler(
                             include_once __DIR__ . '/controller/room.php';
 
                             $room = new \Kevachat\Geminiapp\Controller\Room(
-                                $memory,
                                 $config
                             );
 
