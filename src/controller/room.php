@@ -330,7 +330,7 @@ class Room
             // Reset post list cache for this room
             $this->_memory->delete(
                 [
-                    '\Kevachat\Geminiapp\Controller\Room::posts',
+                    'Kevachat\Geminiapp\Controller\Room::posts',
                     $namespace
                 ]
             );
