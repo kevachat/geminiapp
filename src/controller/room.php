@@ -39,6 +39,12 @@ class Room
 
     public function list(): string
     {
+        // Check for cache
+        if ($result = $this->_memory->get([__METHOD__]))
+        {
+            return $result;
+        }
+
         // Get room list
         $namespaces = [];
 
@@ -116,7 +122,7 @@ class Room
         }
 
         // Build final view and send to response
-        return str_replace(
+        $result = str_replace(
             [
                 '{logo}',
                 '{about}',
@@ -139,6 +145,16 @@ class Room
                 __DIR__ . '/../view/rooms.gemini'
             )
         );
+
+        // Cache results
+        $this->_memory->set(
+            [
+                __METHOD__
+            ],
+            $result
+        );
+
+        return $result;
     }
 
     public function posts(string $namespace): ?string
