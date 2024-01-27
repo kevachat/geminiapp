@@ -169,7 +169,7 @@ class Room
         $posts = [];
 
         // Get pending posts
-        foreach ($this->_pending() as $pending)
+        foreach ($this->_pending($namespace) as $pending)
         {
             if ($post = $this->_post($namespace, $pending['key'], $records, null, $time))
             {
@@ -896,7 +896,7 @@ class Room
         return null;
     }
 
-    private function _pending(): array
+    private function _pending(string $namespace): array
     {
         $result = [];
 
