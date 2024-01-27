@@ -950,7 +950,7 @@ class Room
     private function _records(string $namespace): array
     {
         // Check for cache
-        if ($result = $this->_memory->get([__METHOD__]))
+        if ($result = $this->_memory->get([__METHOD__, $namespace]))
         {
             return $result;
         }
@@ -963,7 +963,8 @@ class Room
         // Save to cache
         $this->_memory->set(
             [
-                __METHOD__
+                __METHOD__,
+                $namespace
             ],
             $result
         );
