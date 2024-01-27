@@ -793,6 +793,12 @@ class Room
 
     private function _clitoris(string $namespace): ?string
     {
+        // Check for cache
+        if ($result = $this->_memory->get([__METHOD__, $namespace]))
+        {
+            return $result;
+        }
+
         // Validate namespace supported to continue
         if (preg_match('/^N[A-z0-9]{33}$/', $namespace))
         {
@@ -805,13 +811,23 @@ class Room
 
                 if ($reader->valid())
                 {
-                    return sprintf(
+                    $result = sprintf(
                         '%s (%s)',
                         $reader->fileName() ? $reader->fileName() : $namespace,
                         $this->_bytes(
                             (int) $reader->fileSize()
                         )
                     );
+
+                    $this->_memory->set(
+                        [
+                            __METHOD__,
+                            $namespace
+                        ],
+                        $result
+                    );
+
+                    return $result;
                 }
             }
         }
