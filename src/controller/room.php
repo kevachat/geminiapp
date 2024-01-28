@@ -347,30 +347,6 @@ class Room
         ?int $cache = 31104000
     ): ?string
     {
-        // Check for cache
-        $result = $this->_memory->get(
-            [
-                __METHOD__,
-                $data,
-                $field
-            ]
-        );
-
-        $time = $this->_memory->get(
-            [
-                __METHOD__,
-                $data,
-                $field,
-                'time'
-            ]
-        );
-
-        // Cache exists
-        if ($result && $time)
-        {
-            return $result;
-        }
-
         // Skip values with meta keys
         if (str_starts_with($data['key'], '_'))
         {
@@ -550,28 +526,6 @@ class Room
                     __DIR__ . '/../view/post.gemini'
                 )
             )
-        );
-
-        // Cache results
-        $this->_memory->set(
-            [
-                __METHOD__,
-                $data,
-                $field
-            ],
-            $result,
-            $cache + time()
-        );
-
-        $this->_memory->set(
-            [
-                __METHOD__,
-                $data,
-                $field,
-                'time'
-            ],
-            $time,
-            $cache + time()
         );
 
         return $result;
