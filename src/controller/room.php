@@ -44,12 +44,6 @@ class Room
 
     public function list(): string
     {
-        // Check for cache
-        if ($result = $this->_memory->get([__METHOD__]))
-        {
-            return $result;
-        }
-
         // Get room list
         $namespaces = [];
 
@@ -67,24 +61,14 @@ class Room
                 continue;
             }
 
-            // Calculate room totals
-            $total = 0;
-
-            foreach ((array) $this->_kevacoin->kevaFilter($namespace['namespaceId']) as $record)
-            {
-                // Is protocol compatible post
-                if ($this->_post($namespace['namespaceId'], $record, [], 'txid'))
-                {
-                    $total++;
-                }
-            }
-
             // Add to room list
             $namespaces[] =
             [
                 'namespace' => $namespace['namespaceId'],
                 'name'      => $namespace['displayName'],
-                'total'     => $total
+                'total'     => $this->_total(
+                    $namespace['namespaceId']
+                )
             ];
         }
 
@@ -126,8 +110,8 @@ class Room
             );
         }
 
-        // Build final view and send to response
-        $result = str_replace(
+        // Build response
+        return str_replace(
             [
                 '{logo}',
                 '{about}',
@@ -150,16 +134,6 @@ class Room
                 __DIR__ . '/../view/rooms.gemini'
             )
         );
-
-        // Cache results
-        $this->_memory->set(
-            [
-                __METHOD__
-            ],
-            $result
-        );
-
-        return $result;
     }
 
     public function posts(string $namespace): ?string
@@ -853,5 +827,57 @@ class Room
         }
 
         return null;
+    }
+
+    private function _total(string $namespace): int
+    {
+        // Check for cache
+        if (false !== $total = $this->_memory->get([__METHOD__, $namespace])) // can be 0
+        {
+            return $total;
+        }
+
+        $raw = [];
+
+        // Get pending
+        foreach ((array) $this->_kevacoin->kevaPending() as $pending)
+        {
+            // Ignore other namespaces
+            if ($pending['namespace'] != $namespace)
+            {
+                continue;
+            }
+
+            $raw[] = $pending;
+        }
+
+        // Get records
+        foreach ((array) $this->_kevacoin->kevaFilter($namespace) as $record)
+        {
+            $raw[] = $record;
+        }
+
+        // Count begin
+        $total = 0;
+
+        foreach ($raw as $data)
+        {
+            // Is valid post
+            if ($this->_post($namespace, $data, [], 'txid'))
+            {
+                $total++;
+            }
+        }
+
+        // Cache results
+        $this->_memory->set(
+            [
+                __METHOD__,
+                $namespace
+            ],
+            $total
+        );
+
+        return $total;
     }
 }
