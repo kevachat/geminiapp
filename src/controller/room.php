@@ -257,10 +257,8 @@ class Room
 
         // Prepare message
         $message = trim(
-            strip_tags(
-                urldecode(
-                    $message
-                )
+            urldecode(
+                $message
             )
         );
 
