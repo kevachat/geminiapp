@@ -65,8 +65,8 @@ class Room
             // Add to room list
             $namespaces[$namespace['namespaceId']] =
             [
-                'name'      => $namespace['displayName'],
-                'total'     => $this->_total(
+                'name'  => $namespace['displayName'],
+                'total' => $this->_total(
                     $namespace['namespaceId']
                 )
             ];
