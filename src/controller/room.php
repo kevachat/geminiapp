@@ -47,6 +47,7 @@ class Room
         // Get room list
         $namespaces = [];
 
+        // Get recorded rooms
         foreach ((array) $this->_kevacoin->kevaListNamespaces() as $namespace)
         {
             // Skip system namespaces
@@ -62,12 +63,26 @@ class Room
             }
 
             // Add to room list
-            $namespaces[] =
+            $namespaces[$namespace['namespaceId']] =
             [
-                'namespace' => $namespace['namespaceId'],
                 'name'      => $namespace['displayName'],
                 'total'     => $this->_total(
                     $namespace['namespaceId']
+                )
+            ];
+        }
+
+        // Get rooms contain pending data
+        foreach ((array) $this->_kevacoin->kevaPending() as $pending)
+        {
+            // Add to room list
+            $namespaces[$pending['namespaceId']] =
+            [
+                'name'  => $this->_namespace(
+                    $pending['namespaceId']
+                ),
+                'total' => $this->_total(
+                    $pending['namespaceId']
                 )
             ];
         }
@@ -88,7 +103,7 @@ class Room
         );
 
         $rooms = [];
-        foreach ($namespaces as $namespace)
+        foreach ($namespaces as $namespace => $value)
         {
             $rooms[] = str_replace(
                 [
@@ -97,12 +112,12 @@ class Room
                     '{link}'
                 ],
                 [
-                    $namespace['name'],
-                    $namespace['total'],
+                    $value['name'],
+                    $value['total'],
                     $this->_link(
                         sprintf(
                             '/room/%s',
-                            $namespace['namespace']
+                            $namespace
                         )
                     )
                 ],
@@ -424,15 +439,17 @@ class Room
                     );
                 }
 
-                // Namespace clickable
-                else if ($name = $this->_namespace($value))
+                // Room
+                else
                 {
                     $links[] = $this->_link(
                         sprintf(
                             '/room/%s',
                             $value
                         ),
-                        $name,
+                        $this->_namespace(
+                            $value
+                        ),
                         true
                     );
                 }
@@ -779,7 +796,7 @@ class Room
         return null;
     }
 
-    public function _namespace(string $namespace, ?int $cache = 31104000): ?string
+    public function _namespace(string $namespace, ?int $cache = 31104000): string
     {
         // Check for cache
         if ($result = $this->_memory->get([__METHOD__, $namespace]))
@@ -826,7 +843,7 @@ class Room
             }
         }
 
-        return null;
+        return $namespace;
     }
 
     private function _total(string $namespace): int
