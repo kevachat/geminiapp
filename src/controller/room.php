@@ -76,13 +76,13 @@ class Room
         foreach ((array) $this->_kevacoin->kevaPending() as $pending)
         {
             // Add to room list
-            $namespaces[$pending['namespaceId']] =
+            $namespaces[$pending['namespace']] =
             [
                 'name'  => $this->_namespace(
-                    $pending['namespaceId']
+                    $pending['namespace']
                 ),
                 'total' => $this->_total(
-                    $pending['namespaceId']
+                    $pending['namespace']
                 )
             ];
         }
