@@ -73,7 +73,7 @@ class Room
             foreach ((array) $this->_kevacoin->kevaFilter($namespace['namespaceId']) as $record)
             {
                 // Is protocol compatible post
-                if ($this->_post($namespace['namespaceId'], $record['key'], [], 'txid'))
+                if ($this->_post($namespace['namespaceId'], $record, [], 'txid'))
                 {
                     $total++;
                 }
@@ -164,28 +164,33 @@ class Room
 
     public function posts(string $namespace): ?string
     {
-        // Get all records by namespace
-        if (!$records = $this->_records($namespace))
+        $raw = [];
+
+        // Get pending
+        foreach ((array) $this->_kevacoin->kevaPending() as $pending)
         {
-            return null;
+            // Ignore other namespaces
+            if ($pending['namespace'] != $namespace)
+            {
+                continue;
+            }
+
+            $raw[] = $pending;
+        }
+
+        // Get records
+        foreach ((array) $this->_kevacoin->kevaFilter($namespace) as $record)
+        {
+            $raw[] = $record;
         }
 
         // Get posts
         $posts = [];
 
-        // Get pending posts
-        foreach ($this->_pending($namespace) as $pending)
+        // Process
+        foreach ($raw as $data)
         {
-            if ($post = $this->_post($namespace, $pending['key'], $records, null, $time))
-            {
-                $posts[$time] = $post;
-            }
-        }
-
-        // Get saved posts
-        foreach ($records as $record)
-        {
-            if ($post = $this->_post($namespace, $record['key'], $records, null, $time))
+            if ($post = $this->_post($namespace, $data, $raw, null, $time))
             {
                 $posts[$time] = $post;
             }
@@ -300,14 +305,6 @@ class Room
                 $session
             );
 
-            // Reset cache
-            $this->_memory->delete(
-                [
-                    'Kevachat\Geminiapp\Controller\Room::_records',
-                    $namespace
-                ]
-            );
-
             // Success
             return $txid;
         }
@@ -341,14 +338,20 @@ class Room
         );
     }
 
-    private function _post(string $namespace, string $key, array $posts = [], ?string $field = null, ?int &$time = 0, ?int $cache = 31104000): ?string
+    private function _post(
+        string $namespace,
+        array $data,
+        array $raw = [],
+        ?string $field = null,
+        ?int &$time = 0,
+        ?int $cache = 31104000
+    ): ?string
     {
         // Check for cache
         $result = $this->_memory->get(
             [
                 __METHOD__,
-                $namespace,
-                $key,
+                $data,
                 $field
             ]
         );
@@ -356,38 +359,32 @@ class Room
         $time = $this->_memory->get(
             [
                 __METHOD__,
-                $namespace,
-                $key,
+                $data,
                 $field,
                 'time'
             ]
         );
 
+        // Cache exists
         if ($result && $time)
         {
             return $result;
         }
 
-        // Check record exists
-        if (!$record = (array) $this->_kevacoin->kevaGet($namespace, $key))
-        {
-            return null;
-        }
-
         // Skip values with meta keys
-        if (str_starts_with($record['key'], '_'))
+        if (str_starts_with($data['key'], '_'))
         {
             return null;
         }
 
         // Validate value format allowed in settings
-        if (!preg_match((string) $this->_config->kevachat->post->value->regex, $record['value']))
+        if (!preg_match((string) $this->_config->kevachat->post->value->regex, $data['value']))
         {
             return null;
         }
 
         // Validate key format allowed in settings
-        if (!preg_match($this->_config->kevachat->post->key->regex, $record['key'], $matches))
+        if (!preg_match($this->_config->kevachat->post->key->regex, $data['key'], $matches))
         {
             return null;
         }
@@ -407,7 +404,7 @@ class Room
         // Is raw field request
         if ($field)
         {
-            return isset($record[$field]) ? $record[$field] : null;
+            return isset($data[$field]) ? $data[$field] : null;
         }
 
         // Legacy usernames backport
@@ -418,7 +415,7 @@ class Room
 
         // Try to find related quote value
         $quote = null;
-        if (preg_match('/^@([A-z0-9]{64})/', $record['value'], $mention))
+        if (preg_match('/^@([A-z0-9]{64})/', $data['value'], $mention))
         {
             // Message starts with mention
             if (!empty($mention[1]))
@@ -427,12 +424,17 @@ class Room
                 $quote = $mention[1];
 
                 // Try to replace with post message by txid
-                foreach ($posts as $post)
+                foreach ($raw as $post)
                 {
                     if ($post['txid'] == $quote)
                     {
                         $quote = $this->_quote(
-                            $post['value'],
+                            $this->_post(
+                                $namespace,
+                                $post,
+                                $raw,
+                                'value'
+                            ),
                             true
                         );
 
@@ -440,12 +442,12 @@ class Room
                     }
                 }
 
-                // Remove mention from message
-                $record['value'] = preg_replace(
+                // Remove original mention from message
+                $data['value'] = preg_replace(
                     '/^@([A-z0-9]{64})/',
                     null,
                     $this->_escape(
-                        $record['value']
+                        $data['value']
                     )
                 );
             }
@@ -455,7 +457,7 @@ class Room
         $links = [];
 
         // Generate related links
-        if (preg_match('/N[A-z0-9]{33}/', $record['value'], $values))
+        if (preg_match('/N[A-z0-9]{33}/', $data['value'], $values))
         {
             foreach ($values as $value)
             {
@@ -492,7 +494,7 @@ class Room
             sprintf(
                 '/room/%s/%s/{session}/reply',
                 $namespace,
-                $record['txid']
+                $data['txid']
             ),
             _('Reply'),
             true
@@ -535,7 +537,7 @@ class Room
 
                     // message
                     $this->_escape(
-                        $record['value']
+                        $data['value']
                     ),
 
                     // links
@@ -554,8 +556,7 @@ class Room
         $this->_memory->set(
             [
                 __METHOD__,
-                $namespace,
-                $key,
+                $data,
                 $field
             ],
             $result,
@@ -565,8 +566,7 @@ class Room
         $this->_memory->set(
             [
                 __METHOD__,
-                $namespace,
-                $key,
+                $data,
                 $field,
                 'time'
             ],
@@ -899,60 +899,5 @@ class Room
         }
 
         return null;
-    }
-
-    private function _pending(string $namespace): array
-    {
-        $result = [];
-
-        foreach ((array) $this->_kevacoin->kevaPending() as $pending)
-        {
-            // Ignore pending from other namespaces
-            if ($pending['namespace'] != $namespace)
-            {
-                continue;
-            }
-
-            // Ignore everything in pending queue but keva_put
-            if ($pending['op'] != 'keva_put')
-            {
-                continue;
-            }
-
-            // Skip meta
-            if (str_starts_with($pending['key'], '_'))
-            {
-                continue;
-            }
-
-            $result[] = $pending;
-        }
-
-        return $result;
-    }
-
-    private function _records(string $namespace): array
-    {
-        // Check for cache
-        if ($result = $this->_memory->get([__METHOD__, $namespace]))
-        {
-            return $result;
-        }
-
-        // Get namespace records
-        $result = (array) $this->_kevacoin->kevaFilter(
-            $namespace
-        );
-
-        // Save to cache
-        $this->_memory->set(
-            [
-                __METHOD__,
-                $namespace
-            ],
-            $result
-        );
-
-        return $result;
     }
 }
