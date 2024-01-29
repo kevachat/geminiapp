@@ -89,6 +89,7 @@ class Room
             [
                 'name'  => $namespace['displayName'],
                 'date'  => $date,
+                'time'  => $time,
                 'total' => $total
             ];
         }
@@ -125,6 +126,7 @@ class Room
                     $pending['namespace']
                 ),
                 'date'  => $date,
+                'time'  => $time,
                 'total' => $total
             ];
         }
@@ -133,7 +135,7 @@ class Room
         array_multisort(
             array_column(
                 $namespaces,
-                'total'
+                'time'
             ),
             SORT_DESC,
             $namespaces
