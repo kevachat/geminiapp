@@ -62,28 +62,70 @@ class Room
                 continue;
             }
 
+            // Get totals
+            $time = 0;
+
+            $total = $this->_total(
+                $namespace['namespaceId'],
+                $time
+            );
+
+            // Format date
+            if ($time)
+            {
+                $date = date(
+                    'Y-m-d ·',
+                    $time
+                );
+            }
+
+            else
+            {
+                $date = null;
+            }
+
             // Add to room list
             $namespaces[$namespace['namespaceId']] =
             [
                 'name'  => $namespace['displayName'],
-                'total' => $this->_total(
-                    $namespace['namespaceId']
-                )
+                'date'  => $date,
+                'total' => $total
             ];
         }
 
         // Get rooms contain pending data
         foreach ((array) $this->_kevacoin->kevaPending() as $pending)
         {
+            // Get totals
+            $time = 0;
+
+            $total = $this->_total(
+                $pending['namespace'],
+                $time
+            );
+
+            // Format date
+            if ($time)
+            {
+                $date = date(
+                    'Y-m-d ·',
+                    $time
+                );
+            }
+
+            else
+            {
+                $date = null;
+            }
+
             // Add to room list
             $namespaces[$pending['namespace']] =
             [
                 'name'  => $this->_namespace(
                     $pending['namespace']
                 ),
-                'total' => $this->_total(
-                    $pending['namespace']
-                )
+                'date'  => $date,
+                'total' => $total
             ];
         }
 
@@ -108,12 +150,25 @@ class Room
             $rooms[] = str_replace(
                 [
                     '{name}',
+                    '{date}',
                     '{total}',
                     '{link}'
                 ],
                 [
                     $value['name'],
-                    $value['total'],
+                    $value['date'],
+                    sprintf(
+                        '%s %s',
+                        $value['total'],
+                        $this->_plural(
+                            $value['total'],
+                            [
+                                _('post'),
+                                _('posts'),
+                                _('posts')
+                            ]
+                        )
+                    ),
                     $this->_link(
                         sprintf(
                             '/room/%s',
@@ -330,8 +385,7 @@ class Room
         array $data,
         array $raw = [],
         ?string $field = null,
-        ?int &$time = 0,
-        ?int $cache = 31104000
+        ?int &$time = 0
     ): ?string
     {
         // Skip values with meta keys
@@ -363,6 +417,9 @@ class Room
         {
             return null;
         }
+
+        // Return timestamp
+        $time = $matches[1];
 
         // Is raw field request
         if ($field)
@@ -464,9 +521,6 @@ class Room
             _('Reply'),
             true
         );
-
-        // Return timestamp
-        $time = $matches[1];
 
         // Build final view and save to result
         $result = preg_replace(
@@ -844,10 +898,19 @@ class Room
         return $namespace;
     }
 
-    private function _total(string $namespace): int
+    private function _total(string $namespace, ?int &$updated = 0): int
     {
-        // Check for cache
-        if (false !== $total = $this->_memory->get([__METHOD__, $namespace])) // can be 0
+        // Check for updated cache
+        $updated = (int) $this->_memory->get(
+            [
+                __METHOD__,
+                $namespace,
+                'updated'
+            ]
+        );
+
+        // Check for total cache
+        if ($updated && false !== $total = $this->_memory->get([__METHOD__, $namespace])) // can be 0
         {
             return $total;
         }
@@ -878,8 +941,15 @@ class Room
         foreach ($raw as $data)
         {
             // Is valid post
-            if ($this->_post($namespace, $data, [], 'txid'))
+            if ($this->_post($namespace, $data, [], 'txid', $time))
             {
+                // Get last post time
+                if ($time && $time > $updated)
+                {
+                    $updated = $time;
+                }
+
+                // Increase totals
                 $total++;
             }
         }
@@ -891,6 +961,15 @@ class Room
                 $namespace
             ],
             $total
+        );
+
+        $this->_memory->set(
+            [
+                __METHOD__,
+                $namespace,
+                'updated'
+            ],
+            $updated
         );
 
         return $total;
