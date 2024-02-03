@@ -780,19 +780,7 @@ class Room
 
     private function _link(?string $path = null, ?string $name = null, ?bool $tag = false)
     {
-        return
-        (
-            $tag ? '=> ' : null
-        )
-        .
-        sprintf(
-            '/%s',
-            $path
-        )
-        .
-        (
-            $name ? ' ' . $name : null
-        );
+        return ($tag ? '=> ' : null) . $path . ($name ? ' ' . $name : null);
     }
 
     private function _clitoris(string $namespace, ?int $cache = 31104000): ?string
