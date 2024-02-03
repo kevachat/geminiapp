@@ -262,7 +262,9 @@ class Room
                 ),
 
                 // home
-                $this->_link(),
+                $this->_link(
+                    '/'
+                ),
 
                 // post
                 $this->_link( // @TODO
