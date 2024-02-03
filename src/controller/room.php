@@ -785,19 +785,9 @@ class Room
             $tag ? '=> ' : null
         )
         .
-        (
-            $this->_config->gemini->server->port == 1965 ?
-            sprintf(
-                'gemini://%s%s',
-                $this->_config->gemini->server->host,
-                $path
-            ) :
-            sprintf(
-                'gemini://%s:%d%s',
-                $this->_config->gemini->server->host,
-                $this->_config->gemini->server->port,
-                $path
-            )
+        sprintf(
+            '/%s',
+            $path
         )
         .
         (
