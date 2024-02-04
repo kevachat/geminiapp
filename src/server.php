@@ -68,11 +68,11 @@ $server->setHandler(
         $response = new \Yggverse\TitanII\Response();
 
         $response->setCode(
-            20
+            $config->gemini->response->default->code
         );
 
         $response->setMeta(
-            'text/gemini'
+            $config->gemini->response->default->meta
         );
 
         // Route begin

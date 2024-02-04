@@ -16,6 +16,14 @@
         {
             "host":"127.0.0.1",
             "port":1965
+        },
+        "response":
+        {
+          "default":
+          {
+            "code":20,
+            "meta":"text/gemini; charset=utf-8;"
+          }
         }
     },
     "memcached":
