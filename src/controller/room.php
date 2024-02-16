@@ -10,6 +10,7 @@ class Room
 
     private \Kevachat\Kevacoin\Client $_kevacoin;
     private \Yggverse\Cache\Memory $_memory;
+    private \PDO $_database;
 
     public function __construct($config)
     {
@@ -39,6 +40,38 @@ class Room
             $this->_config->kevacoin->server->port,
             $this->_config->kevacoin->server->username,
             $this->_config->kevacoin->server->password
+        );
+
+        // Init database
+        $this->_database = new \PDO(
+            sprintf(
+                'sqlite:%s/../../host/%s',
+                __DIR__,
+                $config->sqlite->server->name
+            ),
+            $config->sqlite->server->user,
+            $config->sqlite->server->password
+        );
+
+        $this->_database->setAttribute(
+            \PDO::ATTR_ERRMODE,
+            \PDO::ERRMODE_EXCEPTION
+        );
+
+        $this->_database->setAttribute(
+            \PDO::ATTR_DEFAULT_FETCH_MODE,
+            \PDO::FETCH_OBJ
+        );
+
+        $this->_database->setAttribute(
+            \PDO::ATTR_TIMEOUT,
+            $config->sqlite->server->timeout
+        );
+
+        $this->_database->query(
+            file_get_contents(
+                __DIR__ . '/../../data.sql'
+            )
         );
     }
 
@@ -294,7 +327,7 @@ class Room
         );
     }
 
-    public function post(string $namespace, ?string $txid, int $session, string $message): ?string
+    public function post(string $namespace, ?string $mention, int $session, string $message, ?string &$address = null): null|int|string
     {
         // Validate funds available yet
         if (1 > $this->_kevacoin->getBalance())
@@ -322,9 +355,9 @@ class Room
         );
 
         // Append mention if provided
-        if ($txid)
+        if ($mention)
         {
-            $message = '@' . $txid . PHP_EOL . $message;
+            $message = '@' . $mention . PHP_EOL . $message;
         }
 
         // Validate final message length
@@ -333,55 +366,132 @@ class Room
             return null;
         }
 
-        // Send message
-        if
-        (
-            $txid = $this->_kevacoin->kevaPut(
+        // Cleanup session
+        $this->_memory->delete(
+            $session
+        );
+
+        // Payment required, get new address and save message to the pending pool
+        if ($this->_config->kevachat->post->cost->kva > 0)
+        {
+            $time = time();
+
+            $query = $this->_database->prepare(
+                'INSERT INTO `pool` (
+                    `time`,
+                    `sent`,
+                    `expired`,
+                    `cost`,
+                    `address`,
+                    `namespace`,
+                    `key`,
+                    `value`
+                ) VALUES (
+                    :time,
+                    :sent,
+                    :expired,
+                    :cost,
+                    :address,
+                    :namespace,
+                    :key,
+                    :value
+                )'
+            );
+
+            $query->execute(
+                [
+                    ':time'      => $time,
+                    ':sent'      => 0,
+                    ':expired'   => 0,
+                    ':cost'      => $this->_config->kevachat->post->cost->kva,
+                    ':address'   => $address = $this->_kevacoin->getNewAddress(),
+                    ':namespace' => $namespace,
+                    ':key'       => sprintf('%s@anon', $time),
+                    ':value'     => $message
+                ]
+            );
+
+            return $this->_database->lastInsertId();
+        }
+
+        // Publications free, send post immediately
+        else
+        {
+            return $this->_kevacoin->kevaPut(
                 $namespace,
                 sprintf(
                     '%s@anon',
                     time()
                 ),
                 $message
-            )
-        )
-        {
-            // Cleanup session
-            $this->_memory->delete(
-                $session
             );
-
-            // Success
-            return $txid;
         }
-
-        return null;
     }
 
-    public function sent(string $namespace, string $txid)
+    public function sent(string $namespace, mixed $id, ?string $address)
     {
-        return str_replace(
-            [
-                '{logo}',
-                '{txid}',
-                '{room}'
-            ],
-            [
-                file_get_contents(
-                    __DIR__ . '/../../logo.ascii'
-                ),
-                $txid,
-                $this->_link(
-                    sprintf(
-                        '/room/%s',
-                        $namespace
+        // Transaction requires payment
+        if ($address)
+        {
+            return str_replace(
+                [
+                    '{logo}',
+                    '{id}',
+                    '{address}',
+                    '{amount}',
+                    '{expires}',
+                    '{room}'
+                ],
+                [
+                    file_get_contents(
+                        __DIR__ . '/../../logo.ascii'
+                    ),
+                    $id,
+                    $address,
+                    $this->_config->kevachat->post->cost->kva,
+                    date(
+                        'c',
+                        $this->_config->kevachat->post->pool->timeout + time()
+                    ),
+                    $this->_link(
+                        sprintf(
+                            '/room/%s',
+                            $namespace
+                        )
                     )
+                ],
+                file_get_contents(
+                    __DIR__ . '/../view/pool.gemini'
                 )
-            ],
-            file_get_contents(
-                __DIR__ . '/../view/sent.gemini'
-            )
-        );
+            );
+        }
+
+        // Free post
+        else
+        {
+            return str_replace(
+                [
+                    '{logo}',
+                    '{txid}',
+                    '{room}'
+                ],
+                [
+                    file_get_contents(
+                        __DIR__ . '/../../logo.ascii'
+                    ),
+                    $id,
+                    $this->_link(
+                        sprintf(
+                            '/room/%s',
+                            $namespace
+                        )
+                    )
+                ],
+                file_get_contents(
+                    __DIR__ . '/../view/sent.gemini'
+                )
+            );
+        }
     }
 
     private function _post(

@@ -31,6 +31,7 @@ KevaChat is distributed chat platform for open, uncensored and privacy respectab
 
 ## Install
 
+* `apt install git composer memcached sqlite3 php-curl php-memcached php-sqlite3 php-mbstring`
 * `git clone https://github.com/kevachat/geminiapp.git`
 * `cd geminiapp`
 * `composer update`
@@ -41,6 +42,7 @@ KevaChat is distributed chat platform for open, uncensored and privacy respectab
 * `cp example/config.json host/127.0.0.1/config.json`
 * `cd host/127.0.0.1`
 * `openssl req -x509 -newkey rsa:4096 -keyout key.rsa -out cert.pem -days 365 -nodes -subj "/CN=127.0.0.1"`
+* `* * * * * php src/crontab.php 127.0.0.1` - if post commission enabled
 
 ## Start
 

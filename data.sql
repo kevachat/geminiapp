@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS "pool" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "time" INTEGER NOT NULL,
+    "sent" INTEGER NOT NULL,
+    "expired" INTEGER NOT NULL,
+    "cost" INTEGER NOT NULL,
+    "address" VARCHAR NOT NULL,
+    "namespace" VARCHAR NOT NULL,
+    "key" VARCHAR NOT NULL,
+    "value" TEXT NOT NULL
+);

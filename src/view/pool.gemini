@@ -1,0 +1,15 @@
+```{logo}```
+
+# Success!
+
+Your message saved in pool with ID #{id}
+
+Send exactly {amount} KVA to this address:
+
+```
+{address}
+```
+
+Invoice expires at {expires}
+
+=> {room} Done!

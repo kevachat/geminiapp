@@ -36,6 +36,16 @@
             "namespace":"geminiapp"
         }
     },
+    "sqlite":
+    {
+        "server":
+        {
+            "name":"127.0.0.1/data.db",
+            "user":"",
+            "password":"",
+            "timeout":600
+        }
+    },
     "kevachat":
     {
         "about":
@@ -62,6 +72,15 @@
             "value":
             {
                 "regex":"/.*/ui"
+            },
+            "pool":
+            {
+                "timeout":3600,
+                "confirmations":1
+            },
+            "cost":
+            {
+                "kva":1
             }
         },
         "user":

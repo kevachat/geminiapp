@@ -161,9 +161,22 @@ $server->setHandler(
                         // Request post message
                         if (empty($request->getQuery()))
                         {
-                            $response->setMeta(
-                                'text/plain'
-                            );
+                            if ($config->kevachat->post->cost->kva)
+                            {
+                                $response->setMeta(
+                                    sprintf(
+                                        _('Enter your message text (cost: %s KVA)'),
+                                        $config->kevachat->post->cost->kva
+                                    )
+                                );
+                            }
+
+                            else
+                            {
+                                $response->setMeta(
+                                    _('Enter your message text:')
+                                );
+                            }
 
                             $response->setCode(
                                 10
@@ -182,9 +195,9 @@ $server->setHandler(
                             );
 
                             // Success, redirect to this room page
-                            if ($txid = $room->post($matches[1], null, $matches[2], $request->getQuery()))
+                            if ($id = $room->post($matches[1], null, $matches[2], $request->getQuery(), $address))
                             {
-                                if ($result = $room->sent($matches[1], $txid))
+                                if ($result = $room->sent($matches[1], $id, $address))
                                 {
                                     $response->setContent(
                                         $result
@@ -205,9 +218,22 @@ $server->setHandler(
                         // Request post message
                         if (empty($request->getQuery()))
                         {
-                            $response->setMeta(
-                                'text/plain'
-                            );
+                            if ($config->kevachat->post->cost->kva)
+                            {
+                                $response->setMeta(
+                                    sprintf(
+                                        _('Enter your message text (cost: %s KVA)'),
+                                        $config->kevachat->post->cost->kva
+                                    )
+                                );
+                            }
+
+                            else
+                            {
+                                $response->setMeta(
+                                    _('Enter your message text:')
+                                );
+                            }
 
                             $response->setCode(
                                 10
@@ -226,9 +252,9 @@ $server->setHandler(
                             );
 
                             // Success, redirect to this room page
-                            if ($txid = $room->post($matches[1], $matches[2], $matches[3], $request->getQuery()))
+                            if ($id = $room->post($matches[1], $matches[2], $matches[3], $request->getQuery(), $address))
                             {
-                                if ($result = $room->sent($matches[1], $txid))
+                                if ($result = $room->sent($matches[1], $id, $address))
                                 {
                                     $response->setContent(
                                         $result
