@@ -143,7 +143,7 @@ foreach ($database->query('SELECT * FROM `pool` WHERE `sent` = 0 AND `expired` =
     if ($kevacoin->getReceivedByAddress($pool->address, $config->kevachat->post->pool->confirmations) >= $pool->cost)
     {
         // Check physical wallet balance
-        if ($kevacoin->getBalance() <= $pool->getCost())
+        if ($kevacoin->getBalance() <= $pool->cost)
         {
             exit(
                 sprintf(
