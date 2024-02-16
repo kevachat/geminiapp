@@ -228,6 +228,7 @@ foreach ($database->query('SELECT * FROM `pool` WHERE `sent` = 0 AND `expired` =
     $total++;
 }
 
+/*
 print(
     sprintf(
         _('[%s] [notice] Records processed: %d'),
@@ -235,3 +236,4 @@ print(
         $total
     ) . PHP_EOL
 );
+*/
