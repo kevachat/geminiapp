@@ -329,12 +329,6 @@ class Room
 
     public function post(string $namespace, ?string $mention, int $session, string $message, ?string &$address = null): null|int|string
     {
-        // Validate funds available
-        if ($this->_kevacoin->getBalance($this->_config->kevachat->post->pool->account, $this->_config->kevachat->post->pool->confirmations))
-        {
-            return null;
-        }
-
         // Validate session exists
         if (!$this->_memory->get($session))
         {
@@ -419,6 +413,17 @@ class Room
         // Publications free, send post immediately
         else
         {
+            // Validate funds available
+            if (
+                $this->_kevacoin->getBalance(
+                    $this->_config->kevachat->post->pool->account,
+                    $this->_config->kevachat->post->pool->confirmations
+                ) < $this->_config->kevachat->post->cost->kva
+            ) {
+                return null;
+            }
+
+            // Make blockchain record
             return $this->_kevacoin->kevaPut(
                 $namespace,
                 sprintf(
