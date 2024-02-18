@@ -213,7 +213,7 @@ foreach ($database->query('SELECT * FROM `pool` WHERE `sent` = 0 AND `expired` =
     }
 
     // Record expired
-    else if (time() >= $pool->time + $this->_config->kevachat->post->pool->timeout)
+    else if (time() >= $pool->time + $config->kevachat->post->pool->timeout)
     {
         // Update status
         $database->query(
