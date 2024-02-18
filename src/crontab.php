@@ -143,11 +143,11 @@ foreach ($database->query('SELECT * FROM `pool` WHERE `sent` = 0 AND `expired` =
     if ($kevacoin->getReceivedByAddress($pool->address, $config->kevachat->post->pool->confirmations) >= $pool->cost)
     {
         // Check physical wallet balance
-        if ($kevacoin->getBalance() <= $pool->cost)
+        if ($kevacoin->getBalance($config->kevachat->post->pool->account, $config->kevachat->post->pool->confirmations) < $pool->cost)
         {
             exit(
                 sprintf(
-                    _('[%s] [error] Insufficient wallet funds!'),
+                    _('[%s] [error] Insufficient pool funds!'),
                     date('c')
                 ) . PHP_EOL
             );
@@ -170,6 +170,16 @@ foreach ($database->query('SELECT * FROM `pool` WHERE `sent` = 0 AND `expired` =
         // Send to blockchain
         if ($txid = $kevacoin->kevaPut($pool->namespace, $pool->key, $pool->value))
         {
+            // Send this amount to profit address if provided
+            if ($config->kevacoin->profit->address)
+            {
+                $kevacoin->sendFrom(
+                    $pool->address,
+                    $config->kevacoin->profit->address,
+                    $pool->cost
+                );
+            }
+
             // Update status
             $database->query(
                 sprintf(

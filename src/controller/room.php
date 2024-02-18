@@ -329,8 +329,8 @@ class Room
 
     public function post(string $namespace, ?string $mention, int $session, string $message, ?string &$address = null): null|int|string
     {
-        // Validate funds available yet
-        if (1 > $this->_kevacoin->getBalance())
+        // Validate funds available
+        if ($this->_kevacoin->getBalance($this->_config->kevachat->post->pool->account, $this->_config->kevachat->post->pool->confirmations))
         {
             return null;
         }
@@ -404,7 +404,9 @@ class Room
                     ':sent'      => 0,
                     ':expired'   => 0,
                     ':cost'      => $this->_config->kevachat->post->cost->kva,
-                    ':address'   => $address = $this->_kevacoin->getNewAddress(),
+                    ':address'   => $address = $this->_kevacoin->getNewAddress(
+                        $this->_config->kevachat->post->pool->account
+                    ),
                     ':namespace' => $namespace,
                     ':key'       => sprintf('%s@anon', $time),
                     ':value'     => $message
