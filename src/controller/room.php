@@ -602,7 +602,7 @@ class Room
                 // Remove original mention from message
                 $data['value'] = preg_replace(
                     self::PARENT_REGEX,
-                    null,
+                    '',
                     $this->_escape(
                         $data['value']
                     )
@@ -878,7 +878,7 @@ class Room
         // Remove mention ID from quote
         $value = preg_replace(
             self::PARENT_REGEX,
-            null,
+            '',
             $this->_escape(
                 $value
             )
