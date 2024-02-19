@@ -356,12 +356,6 @@ class Room
             $message = $mention . PHP_EOL . $message;
         }
 
-        // Validate final message length
-        if (mb_strlen($message) < 1 || mb_strlen($message) > 3072)
-        {
-            return null;
-        }
-
         // Cleanup session
         $this->_memory->delete(
             $session
@@ -404,7 +398,11 @@ class Room
                         $this->_config->kevachat->post->pool->account
                     ),
                     ':namespace' => $namespace,
-                    ':key'       => 'anon',
+                    ':key'       => sprintf(
+                        '%d@%s',
+                        time(),
+                        'anon'
+                    ),
                     ':value'     => $message
                 ]
             );
@@ -428,7 +426,11 @@ class Room
             // Make blockchain record
             return $this->_kevacoin->kevaPut(
                 $namespace,
-                'anon',
+                sprintf(
+                    '%d@%s',
+                    time(),
+                    'anon'
+                ),
                 $message
             );
         }
@@ -524,21 +526,6 @@ class Room
             return null;
         }
 
-        // Skip values with meta keys
-        if (str_starts_with($data['key'], '_'))
-        {
-            return null;
-        }
-
-        // Legacy key format support (protocol v1 contain timestamp in prefix)
-        if (preg_match('/^([\d]+)@([A-z0-9\.\:\[\]]+)/', $data['key'], $matches))
-        {
-            if (!empty($matches[2]))
-            {
-                $data['key'] = $matches[2];
-            }
-        }
-
         // Validate value format allowed in settings
         if (!preg_match((string) $this->_config->kevachat->post->value->regex, $data['value']))
         {
@@ -546,22 +533,19 @@ class Room
         }
 
         // Validate key format allowed in settings
-        if (!preg_match($this->_config->kevachat->post->key->regex, $data['key']))
+        if (!preg_match($this->_config->kevachat->post->key->regex, $data['key'], $key))
         {
             return null;
         }
 
-        // Get time from raw transaction
-        if (!$transaction = $this->_kevacoin->getRawTransaction($data['txid']))
+        // Validate timestamp@username
+        if (empty($key[1]) || empty($key[2]))
         {
             return null;
         }
 
-        // Make sure time available
-        if (!$time = $transaction['time'])
-        {
-            return null;
-        }
+        // Return timestamp
+        $time = (int) $key[1];
 
         // Is raw field request
         if ($field)
@@ -680,11 +664,11 @@ class Room
                 [
                     // time
                     $this->_ago(
-                        $transaction['time']
+                        $key[1]
                     ),
 
                     // author
-                    $data['key'],
+                    $key[2],
 
                     // quote
                     $quote,
