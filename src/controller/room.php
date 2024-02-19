@@ -585,17 +585,15 @@ class Room
                 {
                     if ($post['txid'] == $quote)
                     {
-                        $quote = $this->_quote(
-                            $this->_post(
-                                $namespace,
-                                $post,
-                                $raw,
-                                'value'
-                            ),
-                            true
-                        );
+                        if ($_post = $this->_post($namespace, $post, $raw, 'value'))
+                        {
+                            $quote = $this->_quote(
+                                $_post,
+                                true
+                            );
 
-                        break;
+                            break;
+                        }
                     }
                 }
 
