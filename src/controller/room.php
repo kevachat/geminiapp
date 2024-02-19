@@ -508,10 +508,35 @@ class Room
         ?int &$time = 0
     ): ?string
     {
+        // Validate required data
+        if (empty($data['txid']))
+        {
+            return null;
+        }
+
+        if (empty($data['key']))
+        {
+            return null;
+        }
+
+        if (empty($data['value']))
+        {
+            return null;
+        }
+
         // Skip values with meta keys
         if (str_starts_with($data['key'], '_'))
         {
             return null;
+        }
+
+        // Legacy key format support (protocol v1 contain timestamp in prefix)
+        if (preg_match('/^([\d]+)@([A-z0-9\.\:\[\]]+)/', $data['key'], $matches))
+        {
+            if (!empty($matches[2]))
+            {
+                $data['key'] = $matches[2];
+            }
         }
 
         // Validate value format allowed in settings
@@ -521,25 +546,22 @@ class Room
         }
 
         // Validate key format allowed in settings
-        if (!preg_match($this->_config->kevachat->post->key->regex, $data['key'], $matches))
+        if (!preg_match($this->_config->kevachat->post->key->regex, $data['key']))
         {
             return null;
         }
 
-        // Timestamp required in key
-        if (empty($matches[1]))
+        // Get time from raw transaction
+        if (!$transaction = $this->_kevacoin->getRawTransaction($data['txid']))
         {
             return null;
         }
 
-        // Username required in key
-        if (empty($matches[2]))
+        // Make sure time available
+        if (empty($transaction['time']))
         {
             return null;
         }
-
-        // Return timestamp
-        $time = $matches[1];
 
         // Is raw field request
         if ($field)
@@ -547,14 +569,9 @@ class Room
             return isset($data[$field]) ? $data[$field] : null;
         }
 
-        // Legacy usernames backport
-        if (!preg_match((string) $this->_config->kevachat->user->name->regex, $matches[2]))
-        {
-            $matches[2] = 'anon';
-        }
-
         // Try to find related quote value
         $quote = null;
+
         if (preg_match(self::PARENT_REGEX, $data['value'], $mention))
         {
             // Message starts with mention
@@ -665,11 +682,11 @@ class Room
                 [
                     // time
                     $this->_ago(
-                        $matches[1]
+                        $transaction['time']
                     ),
 
                     // author
-                    $matches[2],
+                    $data['key'],
 
                     // quote
                     $quote,
