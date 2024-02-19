@@ -558,7 +558,7 @@ class Room
         }
 
         // Make sure time available
-        if (empty($transaction['time']))
+        if (!$time = $transaction['time'])
         {
             return null;
         }
