@@ -12,6 +12,8 @@ class Room
     private \Yggverse\Cache\Memory $_memory;
     private \PDO $_database;
 
+    private const PARENT_REGEX = '/^[>@]?([A-f0-9]{64})\s/i';
+
     public function __construct($config)
     {
         // Init memory
@@ -351,7 +353,7 @@ class Room
         // Append mention if provided
         if ($mention)
         {
-            $message = '@' . $mention . PHP_EOL . $message;
+            $message = $mention . PHP_EOL . $message;
         }
 
         // Validate final message length
@@ -402,7 +404,7 @@ class Room
                         $this->_config->kevachat->post->pool->account
                     ),
                     ':namespace' => $namespace,
-                    ':key'       => sprintf('%s@anon', $time),
+                    ':key'       => 'anon',
                     ':value'     => $message
                 ]
             );
@@ -426,10 +428,7 @@ class Room
             // Make blockchain record
             return $this->_kevacoin->kevaPut(
                 $namespace,
-                sprintf(
-                    '%s@anon',
-                    time()
-                ),
+                'anon',
                 $message
             );
         }
@@ -556,7 +555,7 @@ class Room
 
         // Try to find related quote value
         $quote = null;
-        if (preg_match('/^@([A-z0-9]{64})/', $data['value'], $mention))
+        if (preg_match(self::PARENT_REGEX, $data['value'], $mention))
         {
             // Message starts with mention
             if (!empty($mention[1]))
@@ -585,7 +584,7 @@ class Room
 
                 // Remove original mention from message
                 $data['value'] = preg_replace(
-                    '/^@([A-z0-9]{64})/',
+                    self::PARENT_REGEX,
                     null,
                     $this->_escape(
                         $data['value']
@@ -670,7 +669,7 @@ class Room
                     ),
 
                     // author
-                    '@' . $matches[2],
+                    $matches[2],
 
                     // quote
                     $quote,
@@ -861,7 +860,7 @@ class Room
 
         // Remove mention ID from quote
         $value = preg_replace(
-            '/^@([A-z0-9]{64})/',
+            self::PARENT_REGEX,
             null,
             $this->_escape(
                 $value
