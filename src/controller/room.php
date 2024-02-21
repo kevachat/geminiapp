@@ -536,19 +536,21 @@ class Room
             return null;
         }
 
+        // Set timestamp
+        $time = isset($transaction['time']) ? $transaction['time'] : time();
+
+        // Set default username
+        $user = $this->_config->kevachat->user->name->guest;
+
         // Detect username (key @postfix)
         if (preg_match('/@([^@]+)$/', $data['key'], $match))
         {
-            $user = $match[1];
+            // Set username on match node settings
+            if (preg_match($this->_config->kevachat->user->name->regex, $match[1]))
+            {
+                $user = $match[1];
+            }
         }
-
-        else
-        {
-            $user = $this->_config->kevachat->user->name->guest;
-        }
-
-        // Return timestamp
-        $time = isset($transaction['time']) ? $transaction['time'] : time();
 
         // Is raw field request
         if ($field)
