@@ -398,11 +398,7 @@ class Room
                         $this->_config->kevachat->post->pool->account
                     ),
                     ':namespace' => $namespace,
-                    ':key'       => sprintf(
-                        '%d@%s',
-                        time(),
-                        'anon'
-                    ),
+                    ':key'       => time(),
                     ':value'     => $message
                 ]
             );
@@ -426,11 +422,7 @@ class Room
             // Make blockchain record
             return $this->_kevacoin->kevaPut(
                 $namespace,
-                sprintf(
-                    '%d@%s',
-                    time(),
-                    'anon'
-                ),
+                time(),
                 $message
             );
         }
@@ -527,25 +519,36 @@ class Room
         }
 
         // Validate value format allowed in settings
-        if (!preg_match((string) $this->_config->kevachat->post->value->regex, $data['value']))
+        if (!preg_match($this->_config->kevachat->post->value->regex, $data['value']))
         {
             return null;
         }
 
         // Validate key format allowed in settings
-        if (!preg_match($this->_config->kevachat->post->key->regex, $data['key'], $key))
+        if (!preg_match($this->_config->kevachat->post->key->regex, $data['key']))
         {
             return null;
         }
 
-        // Validate timestamp@username
-        if (empty($key[1]) || empty($key[2]))
+        // Get transaction time
+        if (!$transaction = $this->_kevacoin->getRawTransaction($data['txid']))
         {
             return null;
+        }
+
+        // Detect username (key @postfix)
+        if (preg_match('/@([^@]+)$/', $data['key'], $match))
+        {
+            $user = $match[1];
+        }
+
+        else
+        {
+            $user = $this->_config->kevachat->user->name->guest;
         }
 
         // Return timestamp
-        $time = (int) $key[1];
+        $time = isset($transaction['time']) ? $transaction['time'] : time();
 
         // Is raw field request
         if ($field)
@@ -664,11 +667,11 @@ class Room
                 [
                     // time
                     $this->_ago(
-                        $key[1]
+                        $time
                     ),
 
                     // author
-                    $key[2],
+                    $user,
 
                     // quote
                     $quote,
