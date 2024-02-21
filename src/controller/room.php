@@ -518,6 +518,12 @@ class Room
             return null;
         }
 
+        // Skip meta records
+        if (str_starts_with($data['key'], '_'))
+        {
+            return null;
+        }
+
         // Validate value format allowed in settings
         if (!preg_match($this->_config->kevachat->post->value->regex, $data['value']))
         {
