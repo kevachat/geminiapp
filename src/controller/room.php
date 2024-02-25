@@ -265,13 +265,20 @@ class Room
             $raw[] = $record;
         }
 
+        // Get node namespaces
+        $namespaces = [];
+        foreach ((array) $this->_kevacoin->kevaListNamespaces() as $_namespace)
+        {
+            $namespaces[$_namespace['namespaceId']] = $_namespace['displayName'];
+        }
+
         // Get posts
         $posts = [];
 
         // Process
         foreach ($raw as $data)
         {
-            if ($post = $this->_post($namespace, $data, $raw, null, $time))
+            if ($post = $this->_post($namespace, $data, $raw, null, $time, isset($namespaces[$namespace])))
             {
                 $posts[$time] = $post;
             }
@@ -298,16 +305,17 @@ class Room
 
                 // home
                 $this->_link(
-                    '/'
+                    '=> / Home'
                 ),
 
                 // post
+                isset($namespaces[$namespace]) ?
                 $this->_link( // @TODO
                     sprintf(
-                        '/room/%s/{session}/post',
+                        '=> /room/%s/{session}/post Post',
                         $namespace
                     )
-                ),
+                ) : null,
 
                 // subject
                 $this->_namespace(
@@ -339,6 +347,18 @@ class Room
 
         // Validate value format allowed in settings
         if (!preg_match((string) $this->_config->kevachat->post->value->regex, $message))
+        {
+            return null;
+        }
+
+        // Validate room
+        $namespaces = [];
+        foreach ((array) $this->_kevacoin->kevaListNamespaces() as $_namespace)
+        {
+            $namespaces[$_namespace['namespaceId']] = $_namespace['displayName'];
+        }
+
+        if (!isset($namespaces[$namespace]))
         {
             return null;
         }
@@ -499,7 +519,8 @@ class Room
         array $data,
         array $raw = [],
         ?string $field = null,
-        ?int &$time = 0
+        ?int &$time = 0,
+        bool $reply = false
     ): ?string
     {
         // Validate required data
@@ -642,15 +663,18 @@ class Room
         }
 
         // Reply link
-        $links[] = $this->_link(
-            sprintf(
-                '/room/%s/%s/{session}/reply',
-                $namespace,
-                $data['txid']
-            ),
-            _('Reply'),
-            true
-        );
+        if ($reply)
+        {
+            $links[] = $this->_link(
+                sprintf(
+                    '/room/%s/%s/{session}/reply',
+                    $namespace,
+                    $data['txid']
+                ),
+                _('Reply'),
+                true
+            );
+        }
 
         // Build final view and save to result
         $result = preg_replace(
@@ -965,20 +989,20 @@ class Room
         }
 
         // Find local name
-        foreach ((array) $this->_kevacoin->kevaListNamespaces() as $record)
+        foreach ((array) $this->_kevacoin->kevaListNamespaces() as $_namespace)
         {
-            if ($record['namespaceId'] == $namespace)
+            if ($_namespace['namespaceId'] == $namespace)
             {
                 $this->_memory->set(
                     [
                         __METHOD__,
                         $namespace
                     ],
-                    $record['displayName'],
+                    $_namespace['displayName'],
                     $cache + time()
                 );
 
-                return $record['displayName'];
+                return $_namespace['displayName'];
             }
         }
 
