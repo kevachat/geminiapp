@@ -48,15 +48,6 @@ KevaChat is distributed chat platform for open, uncensored and privacy respectab
 
 * `php src/server.php 127.0.0.1`
 
-When launching server with systemd, just make sure that manticore service already running:
-
-```
-[Unit]
-Wants=manticore.service
-After=manticore.service
-...
-```
-
 ## See also
 
 * [KevaChat Web Application](https://github.com/kevachat/webapp)
